@@ -27,6 +27,7 @@ class Mock(object):
             return Mock()
 
 MOCK_MODULES = ['lxml']
+print sys.modules.keys()
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
