@@ -1,30 +1,13 @@
-# this file is set up according to pip requirements file format
-# http://www.pip-installer.org/en/latest/requirements.html
-
-# General
 sphinx>=1.1
-## for 'make coverage' only:
 coverage
-## for 'make pep8' only:
 pep8
-## for 'make citations' only:
 pybtex>=0.16
-
-# ObsPy Library
-## obspy.*
-# XXX lxml
 numpy
 scipy
-# XXX matplotlib
-## for obspy.neries:
 suds
-## for obspy.db:
 sqlalchemy
-
-# Tutorial
 http://sourceforge.net/projects/matplotlib/files/matplotlib-toolkits/basemap-1.0.5/basemap-1.0.5.tar.gz
 hcluster
 mlpy
-## doctests only:
 pyproj
 r2py
