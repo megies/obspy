@@ -26,7 +26,8 @@ import glob
 
 def setupAll():
     basedir = os.path.abspath(os.path.dirname(__file__))
-    paths = glob.glob('obspy.*')
+    # paths = glob.glob('obspy.*')
+    paths = ["obspy.core"]
     paths = [os.path.abspath(p) for p in paths]
     for path in paths:
         if not os.path.isdir(path):

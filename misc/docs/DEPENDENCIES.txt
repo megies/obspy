@@ -12,10 +12,10 @@ pybtex>=0.16
 
 # ObsPy Library
 ## obspy.*
-lxml
+# XXX lxml
 numpy
 scipy
-matplotlib
+# XXX matplotlib
 ## for obspy.neries:
 suds
 ## for obspy.db:
