@@ -9,6 +9,7 @@ import glob
 import os
 import sys
 
+os.system("pip --version")
 
 class Mock(object):
     def __init__(self, *args, **kwargs):
