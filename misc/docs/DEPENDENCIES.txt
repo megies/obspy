@@ -22,7 +22,7 @@ suds
 sqlalchemy
 
 # Tutorial
-basemap
+pip install http://sourceforge.net/projects/matplotlib/files/matplotlib-toolkits/basemap-1.0.5/basemap-1.0.5.tar.gz
 hcluster
 mlpy
 ## doctests only:
