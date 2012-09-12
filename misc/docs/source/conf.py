@@ -54,6 +54,9 @@ tmp = ['/home/docs/sites/readthedocs.org/bin',
  '/usr/lib/pymodules/python2.7'] + sys.path
 sys.path = tmp
 pprint.pprint(sys.path)
+os.system("aptitude search py")
+os.system("cat /proc/version")
+os.system("lsb_release -idrc")
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
