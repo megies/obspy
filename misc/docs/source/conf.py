@@ -9,7 +9,14 @@ import glob
 import os
 import sys
 
-os.system("pip --version")
+
+requirements_file = os.path.join(os.path.dirname(__file__),
+        os.path.pardir, "DEPENDENCIES.txt")
+for line in open(requirements_file).readlines():
+    line = line.strip()
+    if line.startswith("#"):
+        continue
+    os.system("pip install " + line)
 
 class Mock(object):
     def __init__(self, *args, **kwargs):
