@@ -13,7 +13,7 @@ pybtex>=0.16
 # XXX lxml
 numpy
 scipy
-# XXX matplotlib
+matplotlib
 ## for obspy.neries:
 suds
 ## for obspy.db:
