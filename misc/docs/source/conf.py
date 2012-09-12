@@ -17,6 +17,9 @@ for line in open(requirements_file).readlines():
     if line.startswith("#"):
         continue
     os.system("pip install " + line)
+import pprint
+pprint(sys.path)
+sys.path.append("/usr/lib/pymodules/python2.7")
 import matplotlib
 print matplotlib.__version__
 import glob
