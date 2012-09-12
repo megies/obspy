@@ -10,8 +10,7 @@ pep8
 ## for 'make citations' only:
 pybtex>=0.16
 
-# ObsPy Library
-## obspy.*
+#
 lxml
 numpy
 scipy
@@ -28,3 +27,27 @@ mlpy
 ## doctests only:
 pyproj
 r2py
+
+# ObsPy Library
+obspy.arclink
+obspy.core
+obspy.datamark
+obspy.db
+obspy.earthworm
+obspy.gse2
+obspy.imaging
+obspy.iris
+obspy.mseed
+obspy.neries
+obspy.realtime
+obspy.sac
+obspy.seedlink
+obspy.seg2
+obspy.segy
+obspy.seisan
+obspy.seishub
+obspy.sh
+obspy.signal
+obspy.taup
+obspy.wav
+obspy.xseed
