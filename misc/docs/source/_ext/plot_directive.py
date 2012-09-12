@@ -229,6 +229,7 @@ def run_code(plot_path, function_name, plot_code, context=False):
             os.chdir(path)
         fd = None
         try:
+            print >> stdout, os.getcwd()
             print >> stdout, fname
             fd = open(fname)
             module = imp.load_module(
