@@ -19,7 +19,8 @@ for line in open(requirements_file).readlines():
     os.system("pip install " + line)
 import pprint
 pprint.pprint(sys.path)
-sys.path.append("/usr/lib/pymodules/python2.7")
+for p in ["/usr/lib/python2.7/dist-packages", "/usr/lib/pymodules/python2.7", "/home/docs/sites/readthedocs.org/lib/python2.7/site-packages"]:
+    sys.path.append(p)
 import matplotlib
 print matplotlib.__version__
 import glob
