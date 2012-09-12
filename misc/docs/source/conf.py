@@ -12,6 +12,48 @@ import sys
 
 import pprint
 pprint.pprint(sys.path)
+tmp = ['/home/docs/sites/readthedocs.org/bin',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/distribute-0.6.28-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.sh-0.5.2.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.segy-0.5.2.dev-py2.7-linux-x86_64.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.mseed-0.7.0.dev-py2.7-linux-x86_64.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.earthworm-0.1.0.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.realtime-0.1.0.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.xseed-0.7.0.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.seedlink-0.0.4.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.sac-0.7.0.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.imaging-0.7.0.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.neries-0.7.0.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/suds-0.4-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.wav-0.5.1.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.datamark-0.1.0.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.signal-0.7.0.dev-py2.7-linux-x86_64.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.seisan-0.5.1.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.iris-0.7.0.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.gse2-0.7.0.dev-py2.7-linux-x86_64.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.db-0.7.0.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/SQLAlchemy-0.7.8-py2.7-linux-x86_64.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.seg2-0.7.0.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.seishub-0.5.1.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.arclink-0.7.1.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages/obspy.core-0.7.1.dev-py2.7.egg',
+ '/home/docs/sites/readthedocs.org/lib/python2.7',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/plat-linux2',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/lib-tk',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/lib-old',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/lib-dynload',
+ '/usr/lib/python2.7',
+ '/usr/lib/python2.7/plat-linux2',
+ '/usr/lib/python2.7/lib-tk',
+ '/home/docs/sites/readthedocs.org/lib/python2.7/site-packages',
+ '/usr/local/lib/python2.7/site-packages',
+ '/usr/local/lib/python2.7/dist-packages',
+ '/usr/lib/python2.7/dist-packages',
+ '/usr/lib/python2.7/dist-packages/PIL',
+ '/usr/lib/python2.7/dist-packages/gtk-2.0',
+ '/usr/lib/pymodules/python2.7'] + sys.path
+sys.path = tmp
+pprint.pprint(sys.path)
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
