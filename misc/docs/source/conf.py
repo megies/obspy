@@ -21,6 +21,12 @@ import pprint
 pprint.pprint(sys.path)
 for p in ["/usr/lib/python2.7/dist-packages", "/usr/lib/pymodules/python2.7", "/home/docs/sites/readthedocs.org/lib/python2.7/site-packages"]:
     sys.path.append(p)
+try:
+    import obspy.core
+    print obspy.core.__version__
+except:
+    os.system("pip install obspy.core")
+    print obspy.core.__version__
 import matplotlib
 print matplotlib.__version__
 import glob
