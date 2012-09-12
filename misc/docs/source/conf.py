@@ -18,7 +18,7 @@ for line in open(requirements_file).readlines():
         continue
     os.system("pip install " + line)
 import pprint
-pprint(sys.path)
+pprint.pprint(sys.path)
 sys.path.append("/usr/lib/pymodules/python2.7")
 import matplotlib
 print matplotlib.__version__
