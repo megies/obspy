@@ -16,7 +16,14 @@ for line in open(requirements_file).readlines():
     line = line.strip()
     if line.startswith("#"):
         continue
-    os.system("pip install " + line)
+    os.system("pip install --upgrade " + line)
+import matplotlib
+print matplotlib.__version__
+import glob
+print glob.glob(matplotlib.__path__[0] + "/*")
+print glob.glob(matplotlib.__path__[0] + "/*/*")
+import matplotlib.sphinxext
+import matplotlib.sphinxext.only_directives
 
 class Mock(object):
     def __init__(self, *args, **kwargs):
