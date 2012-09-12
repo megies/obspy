@@ -229,7 +229,7 @@ def run_code(plot_path, function_name, plot_code, context=False):
             os.chdir(path)
         fd = None
         try:
-            print fname
+            print fname >> stdout
             fd = open(fname)
             module = imp.load_module(
                 "__plot__", fd, fname, ('py', 'r', imp.PY_SOURCE))
