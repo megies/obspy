@@ -16,7 +16,7 @@ for line in open(requirements_file).readlines():
     line = line.strip()
     if line.startswith("#"):
         continue
-    os.system("pip install --upgrade " + line)
+    os.system("pip install " + line)
 import matplotlib
 print matplotlib.__version__
 import glob
