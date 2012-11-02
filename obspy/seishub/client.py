@@ -15,6 +15,7 @@ from lxml.etree import Element, SubElement, tostring
 from math import log
 from obspy.core import UTCDateTime
 from obspy.core.util import guessDelta
+from obspy.core.util.decorator import deprecated_keywords
 from obspy.xseed import Parser
 import os
 import pickle
@@ -768,14 +769,18 @@ master/seishub/plugins/seismology/event.py
     package = 'seismology'
     resourcetype = 'event'
 
-    def getList(self, limit=50, offset=None, localisation_method=None,
-                account=None, user=None, min_datetime=None, max_datetime=None,
-                first_pick=None, last_pick=None, min_latitude=None,
-                max_latitude=None, min_longitude=None, max_longitude=None,
-                min_magnitude=None, max_magnitude=None, min_depth=None,
-                max_depth=None, used_p=None, min_used_p=None, max_used_p=None,
-                used_s=None, min_used_s=None, max_used_s=None,
-                document_id=None, **kwargs):
+    @deprecated_keywords({'localisation_method': 'evaluation_mode', 'user':
+            'author', 'used_p': 'used_phase_count', 'min_used_p':
+            'min_used_phase_count', 'max_used_p': 'max_used_phase_count',
+            'used_s': None, 'min_used_p': None, 'max_used_p': None, 'account':
+            None})
+    def getList(self, limit=50, offset=None, evaluation_mode=None, author=None,
+            min_datetime=None, max_datetime=None, first_pick=None,
+            last_pick=None, min_latitude=None, max_latitude=None,
+            min_longitude=None, max_longitude=None, min_magnitude=None,
+            max_magnitude=None, min_depth=None, max_depth=None,
+            used_phase_count=None, min_used_phase_count=None,
+            max_used_phase_count=None, document_id=None, **kwargs):
         """
         Gets a list of event information.
 
