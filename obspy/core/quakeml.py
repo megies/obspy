@@ -25,6 +25,12 @@ from obspy.core.event import Catalog, Event, Origin, CreationInfo, Magnitude, \
 from obspy.core.utcdatetime import UTCDateTime
 from obspy.core.util.xmlwrapper import XMLParser, tostring, etree
 import StringIO
+import warnings
+
+
+NSMAP_QUAKEML = {None: "http://quakeml.org/xmlns/bed/1.2",
+                 'q': "http://quakeml.org/xmlns/quakeml/1.2"}
+NAMESPACE_DEFAULT = ('obspy', "http://obspy.org/xmlns/default")
 
 
 def isQuakeML(filename):
@@ -754,6 +760,12 @@ class Pickler(object):
     """
     Serializes an ObsPy Catalog object into QuakeML format.
     """
+    def __init__(self):
+        # set of namespace urls without given abbreviation
+        self.ns_set = set()
+        # dictionary of namespace/namespace urls
+        self.ns_dict = NSMAP_QUAKEML.copy()
+
     def dump(self, catalog, file):
         """
         Writes ObsPy Catalog into given file.
@@ -869,6 +881,64 @@ class Pickler(object):
             etree.SubElement(comment_el, 'text').text = comment.text
             self._creation_info(comment.creation_info, comment_el)
             element.append(comment_el)
+
+    def _extra(self, obj, element):
+        """
+        Add information stored in obj.extra as custom tags in non-quakeml
+        namespace.
+        """
+        if not hasattr(obj, "extra"):
+            return
+        for key, value in obj.extra.iteritems():
+            ns = None
+            # check if a namespace is given
+            if isinstance(value, dict):
+                ns = value.get("_namespace")
+                value = value.get("value")
+            # otherwise use default obspy namespace (and add it to
+            if ns is None:
+                ns_abbrev, ns = NAMESPACE_DEFAULT
+                self._addNamespace(ns, ns_abbrev)
+            else:
+                # allow two formats:
+                # ["shortname", "namespaceurl"] or "namespaceurl"
+                if isinstance(ns, basestring):
+                    ns_abbrev = None
+                else:
+                    ns_abbrev, ns = ns
+                self._addNamespace(ns, ns_abbrev)
+            tag = "{%s}%s" % (ns, key)
+            self._str(value, element, tag)
+
+    def _getNamespaceMap(self):
+        nsmap = self.ns_dict.copy()
+        _i = 0
+        for ns in self.ns_set:
+            if ns in nsmap.values():
+                continue
+            ns_abbrev = "ns%d" % _i
+            _i += 1
+            nsmap[ns_abbrev] = ns
+        return nsmap
+
+    def _addNamespace(self, ns, ns_abbrev=None):
+        if ns_abbrev is None:
+            self.ns_set.add(ns)
+            return
+        msg = "Namespace shortname already in use, falling back " + \
+              " to a generic shortname."
+        # check if abbreviation is already in use
+        if ns_abbrev == "":
+            warnings.warn(msg)
+            self.ns_set.add(ns)
+            return
+        elif ns_abbrev in self.ns_dict:
+            if self.ns_dict[ns_abbrev] != ns:
+                warnings.warn(msg)
+                self.ns_set.add(ns)
+                return
+        self.ns_dict[ns_abbrev] = ns
+        return
 
     def _arrival(self, arrival):
         """
@@ -1101,6 +1171,7 @@ class Pickler(object):
         self._str(pick.evaluation_status, element, 'evaluationStatus')
         self._comments(pick.comments, element)
         self._creation_info(pick.creation_info, element)
+        self._extra(pick, element)
         return element
 
     def _nodal_planes(self, obj, element):
@@ -1273,9 +1344,6 @@ class Pickler(object):
         """
         Converts a Catalog object into XML string.
         """
-        root_el = etree.Element(
-            '{http://quakeml.org/xmlns/quakeml/1.2}quakeml',
-            attrib={'xmlns': "http://quakeml.org/xmlns/bed/1.2"})
         catalog_el = etree.Element('eventParameters',
             attrib={'publicID': self._id(catalog.resource_id)})
         # optional catalog parameters
@@ -1283,7 +1351,6 @@ class Pickler(object):
             self._str(catalog.description, catalog_el, 'description')
         self._comments(catalog.comments, catalog_el)
         self._creation_info(catalog.creation_info, catalog_el)
-        root_el.append(catalog_el)
         for event in catalog:
             # create event node
             event_el = etree.Element('event',
@@ -1327,8 +1394,13 @@ class Pickler(object):
             # focal mechanisms
             for focal_mechanism in event.focal_mechanisms:
                 event_el.append(self._focal_mechanism(focal_mechanism))
+            self._extra(event, event_el)
             # add event node to catalog
             catalog_el.append(event_el)
+        nsmap = self._getNamespaceMap()
+        root_el = etree.Element('{%s}quakeml' % NSMAP_QUAKEML['q'],
+                                nsmap=nsmap)
+        root_el.append(catalog_el)
         return tostring(root_el, pretty_print=pretty_print)
 
 
