@@ -13,6 +13,11 @@ dev:
      all scipy windowing functions
    * adding cutout() method to Stream
    * removed all deprecated UTCDateTime methods
+   * adaptions for quakeml output:
+     - support for additional fields ("extra" attribute)
+     - improved handling of multiple namespaces, use new obspy namespace for
+       additional fields that are not defined in quakeml standard
+     - support for user defined namespaces for "extra" fields
  - obspy.imaging:
    * obspy-scan: adding options to control start/endtime and channels, adding
      options to not plot gaps and reducing file size for plots considerably.
@@ -36,6 +41,8 @@ dev:
    * changing obspy.client.station.getPAZ() call syntax to use seed_id (args/kwargs)
    * adding local caching of requests for PAZ and coordinates to avoid repeated
      requests to server
+   * adaptions due to changes in seishub.core and seishub.plugins.seismology:
+     deprecating kwargs in client.getList() that have changed in seishub server
  - obspy.sh:
    * file extension 'QBN' not added twice anymore if data_directory was set
    * fixing SH_ASC and Q reading/writing of empty traces or traces containing
