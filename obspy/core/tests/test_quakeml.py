@@ -270,7 +270,6 @@ class QuakeMLTestCase(unittest.TestCase):
         processed = Pickler().dumps(catalog)
         self._compareStrings(original, processed)
 
-
     def test_stationmagnitude(self):
         """
         Tests StationMagnitude object.
@@ -554,6 +553,15 @@ class QuakeMLTestCase(unittest.TestCase):
                 msg = msg.format(enum_name=enum_name,
                     enumerations=", ".join(additional_items))
                 raise Exception(msg)
+
+    def test_read_string(self):
+        """
+        Test reading a QuakeML string/unicode object via readEvents.
+        """
+        filename = os.path.join(self.path, 'neries_events.xml')
+        data = open(filename, 'rt').read()
+        catalog = readEvents(data)
+        self.assertTrue(len(catalog), 3)
 
 
 def suite():

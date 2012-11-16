@@ -58,6 +58,7 @@ INSTALL_REQUIRES = [
     'suds>=0.4.0']
 ENTRY_POINTS = {
     'console_scripts': [
+        'obspy-flinn-engdahl = obspy.core.scripts.flinnengdahl:main',
         'obspy-runtests = obspy.core.scripts.runtests:main',
         'obspy-reftek-rescue = obspy.core.scripts.reftekrescue:main',
         'obspy-indexer = obspy.db.scripts.indexer:main',
@@ -236,7 +237,7 @@ ENTRY_POINTS = {
 UTIL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "obspy",
                                          "core", "util"))
 sys.path.append(UTIL_PATH)
-from base import _getVersionString  # @UnresolvedImport
+from version import get_git_version as _getVersionString
 
 LOCAL_PATH = os.path.abspath(os.path.dirname(__file__))
 DOCSTRING = __doc__.split("\n")

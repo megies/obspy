@@ -30,11 +30,11 @@ import re
 import urllib2
 import warnings
 import weakref
+import cStringIO
 
 
 EVENT_ENTRY_POINTS = ENTRY_POINTS['event']
 ATTRIBUTE_HAS_ERRORS = True
-BASECLASS = AttribDict
 
 
 def readEvents(pathname_or_url=None, format=None, **kwargs):
@@ -106,10 +106,14 @@ def readEvents(pathname_or_url=None, format=None, **kwargs):
             cat.extend(_read(fh.name, format, **kwargs).events)
             os.remove(fh.name)
         pathname_or_url.seek(0)
+    elif pathname_or_url.strip().startswith('<'):
+        # XML string
+        catalog = _read(cStringIO.StringIO(pathname_or_url), format, **kwargs)
+        cat.extend(catalog.events)
     elif "://" in pathname_or_url:
+        # URL
         # extract extension if any
         suffix = os.path.basename(pathname_or_url).partition('.')[2] or '.tmp'
-        # some URL
         fh = NamedTemporaryFile(suffix=suffix)
         fh.write(urllib2.urlopen(pathname_or_url).read())
         fh.close()
@@ -174,11 +178,11 @@ def _eventTypeClassFactory(class_name, class_attributes=[], class_contains=[]):
     the acceptable values.
 
         >>> from obspy.core.util.types import Enum
-        >>> ABCEnum = Enum(["a", "b", "c"])
+        >>> MyEnum = Enum(["a", "b", "c"])
         >>> class_attributes = [ \
                 ("resource_id", ResourceIdentifier), \
                 ("creation_info", CreationInfo), \
-                ("some_letters", ABCEnum), \
+                ("some_letters", MyEnum), \
                 ("some_error_quantity", float, ATTRIBUTE_HAS_ERRORS), \
                 ("description", str)]
 
@@ -235,7 +239,7 @@ def _eventTypeClassFactory(class_name, class_attributes=[], class_contains=[]):
         >>> test_event.some_error_quantity_errors  # doctest: +ELLIPSIS
         QuantityError(...)
     """
-    class AbstractEventType(BASECLASS):
+    class AbstractEventType(AttribDict):
         # Keep the class attributes in a class level list for a manual property
         # implementation that works when inheriting from AttribDict.
         _properties = []
@@ -270,7 +274,7 @@ def _eventTypeClassFactory(class_name, class_attributes=[], class_contains=[]):
                     setattr(self, key, QuantityError())
 
         def clear(self):
-            BASECLASS.clear(self)
+            super(AbstractEventType, self).clear()
             self.__init__()
 
         def __str__(self):
@@ -2557,14 +2561,14 @@ class Catalog(object):
         :meth:`~obspy.core.event.Catalog.write` method. The following
         table summarizes all known formats currently available for ObsPy.
 
-        Please refer to the *Linked Function Call* of each module for any extra
-        options available.
+        Please refer to the `Linked Function Call`_ of each module for any
+        extra options available.
 
-        =======  ===================  =====================================
-        Format   Required Module      Linked Function Call
-        =======  ===================  =====================================
-        QUAKEML  :mod:`obspy.core`   :func:`obspy.core.event.writeQUAKEML`
-        =======  ===================  =====================================
+        =======  ===================  =======================================
+        Format   Required Module      _`Linked Function Call`
+        =======  ===================  =======================================
+        QUAKEML  :mod:`obspy.core`    :func:`obspy.core.quakeml.writeQuakeML`
+        =======  ===================  =======================================
         """
         format = format.upper()
         try:

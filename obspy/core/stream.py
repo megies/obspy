@@ -8,7 +8,7 @@ Module for handling ObsPy Stream objects.
     GNU Lesser General Public License, Version 3
     (http://www.gnu.org/copyleft/lesser.html)
 """
-from glob import glob, iglob, has_magic
+from glob import glob, has_magic
 from obspy.core.trace import Trace
 from obspy.core.utcdatetime import UTCDateTime
 from obspy.core.util import NamedTemporaryFile, getExampleFile
@@ -26,7 +26,8 @@ import warnings
 
 
 def read(pathname_or_url=None, format=None, headonly=False, starttime=None,
-        endtime=None, nearest_sample=True, dtype=None, **kwargs):
+         endtime=None, nearest_sample=True, dtype=None, apply_calib=False,
+         **kwargs):
     """
     Read waveform files into an ObsPy Stream object.
 
@@ -55,8 +56,8 @@ def read(pathname_or_url=None, format=None, headonly=False, starttime=None,
         which results in a slightly slower reading. If you specify a format no
         further format checking is done.
     :type headonly: bool, optional
-    :param headonly: If set to True, read only the data header. This is most
-        useful for scanning available meta information of huge data sets.
+    :param headonly: If set to ``True``, read only the data header. This is
+        most useful for scanning available meta information of huge data sets.
     :type starttime: :class:`~obspy.core.utcdatetime.UTCDateTime`, optional
     :param starttime: Specify the start time to read.
     :type endtime: :class:`~obspy.core.utcdatetime.UTCDateTime`, optional
@@ -67,6 +68,9 @@ def read(pathname_or_url=None, format=None, headonly=False, starttime=None,
         more info, see :meth:`~obspy.core.trace.Trace.trim`.
     :type dtype: :class:`numpy.dtype`, optional
     :param dtype: Convert data of all traces into given numpy.dtype.
+    :type apply_calib: bool, optional
+    :param apply_calib: Automatically applies the calibration factor
+        ``trace.stats.calib`` for each trace, if set. Defaults to ``False``.
     :param kwargs: Additional keyword arguments passed to the underlying
         waveform reader method.
     :return: An ObsPy :class:`~obspy.core.stream.Stream` object.
@@ -239,7 +243,7 @@ def read(pathname_or_url=None, format=None, headonly=False, starttime=None,
     else:
         # some file name
         pathname = pathname_or_url
-        for file in iglob(pathname):
+        for file in sorted(glob(pathname)):
             st.extend(_read(file, format, headonly, **kwargs).traces)
         if len(st) == 0:
             # try to give more specific information why the stream is empty
@@ -268,6 +272,10 @@ def read(pathname_or_url=None, format=None, headonly=False, starttime=None,
     if dtype:
         for tr in st:
             tr.data = np.require(tr.data, dtype)
+    # applies calibration factor
+    if apply_calib:
+        for tr in st:
+            tr.data = tr.data * tr.stats.calib
     return st
 
 
@@ -1231,7 +1239,7 @@ class Stream(object):
         SU       :mod:`obspy.segy`    :func:`obspy.segy.core.writeSU`
         TSPAIR   :mod:`obspy.core`    :func:`obspy.core.ascii.writeTSPAIR`
         WAV      :mod:`obspy.wav`     :func:`obspy.wav.core.writeWAV`
-        PICKLE   :mod:`obspy.core`    :func:`obspy.wav.stream.writePICKLE`
+        PICKLE   :mod:`obspy.core`    :func:`obspy.core.stream.readPickle`
         =======  ===================  ====================================
         """
         # Check all traces for masked arrays and raise exception.
@@ -2094,7 +2102,7 @@ class Stream(object):
             a copy of your stream object.
         """
         for tr in self:
-            tr.taper(type=type)
+            tr.taper(type=type, *args, **kwargs)
 
     def std(self):
         """

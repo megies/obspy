@@ -18,9 +18,6 @@ import numpy as np
 import warnings
 
 
-signal = None
-
-
 class Stats(AttribDict):
     """
     A container for additional header information of a ObsPy Trace object.
@@ -127,27 +124,24 @@ class Stats(AttribDict):
         >>> trace.stats.npts
         4
     """
-
     readonly = ['endtime']
-    sampling_rate = 1.0
-    starttime = UTCDateTime(0)
-    npts = 0
+    defaults = {
+        'sampling_rate': 1.0,
+        'delta': 1.0,
+        'starttime': UTCDateTime(0),
+        'endtime': UTCDateTime(0),
+        'npts': 0,
+        'calib': 1.0,
+        'network': '',
+        'station': '',
+        'location': '',
+        'channel': '',
+    }
 
     def __init__(self, header={}):
         """
         """
-        # set default values without calculating derived entries
-        super(Stats, self).__setitem__('sampling_rate', 1.0)
-        super(Stats, self).__setitem__('starttime', UTCDateTime(0))
-        super(Stats, self).__setitem__('npts', 0)
-        # set default values for all other headers
-        header.setdefault('calib', 1.0)
-        for default in ['station', 'network', 'location', 'channel']:
-            header.setdefault(default, '')
-        # initialize
         super(Stats, self).__init__(header)
-        # calculate derived values
-        self._calculateDerivedValues()
 
     def __setitem__(self, key, value):
         """
@@ -166,8 +160,18 @@ class Stats(AttribDict):
                 value = int(value)
             # set current key
             super(Stats, self).__setitem__(key, value)
-            # set derived values
-            self._calculateDerivedValues()
+            # set derived value: delta
+            try:
+                delta = 1.0 / float(self.sampling_rate)
+            except ZeroDivisionError:
+                delta = 0
+            self.__dict__['delta'] = delta
+            # set derived value: endtime
+            if self.npts == 0:
+                timediff = 0
+            else:
+                timediff = (self.npts - 1) * delta
+            self.__dict__['endtime'] = self.starttime + timediff
             return
         # prevent a calibration factor of 0
         if key == 'calib' and value == 0:
@@ -189,32 +193,6 @@ class Stats(AttribDict):
                           'starttime', 'endtime', 'sampling_rate', 'delta',
                           'npts', 'calib']
         return self._pretty_str(priorized_keys)
-
-    def _calculateDerivedValues(self):
-        """
-        Calculates derived headers such as `delta` and `endtime`.
-        """
-        # set delta
-        try:
-            delta = 1.0 / float(self.sampling_rate)
-        except ZeroDivisionError:
-            delta = 0
-        super(Stats, self).__setitem__('delta', delta)
-        # set endtime
-        if self.npts == 0:
-            timediff = 0
-        else:
-            timediff = (self.npts - 1) * delta
-        self.__dict__['endtime'] = self.starttime + timediff
-
-    def setEndtime(self, value):  # @UnusedVariable
-        msg = "Attribute \"endtime\" in Stats object is read only!"
-        raise AttributeError(msg)
-
-    def getEndtime(self):
-        return self.__dict__['endtime']
-
-    endtime = property(getEndtime, setEndtime)
 
 
 class Trace(object):
@@ -253,7 +231,7 @@ class Trace(object):
             msg = "Trace.data must be a NumPy array."
             raise ValueError(msg)
         # set some defaults if not set yet
-        if header == None:
+        if header is None:
             # Default values: For detail see
             # http://www.obspy.org/wiki/\
             # KnownIssues#DefaultParameterValuesinPython
@@ -337,7 +315,7 @@ class Trace(object):
         out = ''
         # output depending on delta or sampling rate bigger than one
         if self.stats.sampling_rate < 0.1:
-            if hasattr(self.stats, 'preview')  and self.stats.preview:
+            if hasattr(self.stats, 'preview') and self.stats.preview:
                 out = out + ' | '\
                       "%(starttime)s - %(endtime)s | " + \
                       "%(delta).1f s, %(npts)d samples [preview]"
@@ -346,7 +324,7 @@ class Trace(object):
                       "%(starttime)s - %(endtime)s | " + \
                       "%(delta).1f s, %(npts)d samples"
         else:
-            if hasattr(self.stats, 'preview')  and self.stats.preview:
+            if hasattr(self.stats, 'preview') and self.stats.preview:
                 out = out + ' | '\
                       "%(starttime)s - %(endtime)s | " + \
                       "%(sampling_rate).1f Hz, %(npts)d samples [preview]"
@@ -492,11 +470,13 @@ class Trace(object):
         """
         if not isinstance(num, int):
             raise TypeError("Integer expected")
+        elif num <= 0:
+            raise ValueError("Positive Integer expected")
         from obspy.core import Stream
         st = Stream()
         total_length = np.size(self.data)
         if num >= total_length:
-            st.append(tr.copy())
+            st.append(self.copy())
             return st
         tstart = self.stats.starttime
         tend = tstart + (self.stats.delta * (num - 1))
@@ -858,7 +838,7 @@ class Trace(object):
             raise TypeError
         # check if in boundary
         if nearest_sample:
-            delta = round((starttime - self.stats.starttime) * \
+            delta = round((starttime - self.stats.starttime) *
                           self.stats.sampling_rate)
             # due to rounding and npts starttime must always be right of
             # self.stats.starttime, rtrim relies on it
@@ -866,12 +846,12 @@ class Trace(object):
                 npts = abs(delta) + 10  # use this as a start
                 newstarttime = self.stats.starttime - npts / \
                         float(self.stats.sampling_rate)
-                newdelta = round((starttime - newstarttime) * \
+                newdelta = round((starttime - newstarttime) *
                                  self.stats.sampling_rate)
                 delta = newdelta - npts
             delta = int(delta)
         else:
-            delta = int(math.floor(round((self.stats.starttime - starttime) * \
+            delta = int(math.floor(round((self.stats.starttime - starttime) *
                                           self.stats.sampling_rate, 7))) * -1
         # Adjust starttime only if delta is greater than zero or if the values
         # are padded with masked arrays.
@@ -886,7 +866,7 @@ class Trace(object):
             except ValueError:
                 # createEmptyDataChunk returns negative ValueError ?? for
                 # too large number of points, e.g. 189336539799
-                raise Exception("Time offset between starttime and " + \
+                raise Exception("Time offset between starttime and "
                                 "trace.starttime too large")
             self.data = np.ma.concatenate((gap, self.data))
             return
@@ -918,14 +898,14 @@ class Trace(object):
             raise TypeError
         # check if in boundary
         if nearest_sample:
-            delta = round((endtime - self.stats.starttime) * \
+            delta = round((endtime - self.stats.starttime) *
                            self.stats.sampling_rate) - self.stats.npts + 1
             delta = int(delta)
         else:
             # solution for #127, however some tests need to be changed
             #delta = -1*int(math.floor(round((self.stats.endtime - endtime) * \
             #                       self.stats.sampling_rate, 7)))
-            delta = int(math.floor(round((endtime - self.stats.endtime) * \
+            delta = int(math.floor(round((endtime - self.stats.endtime) *
                                    self.stats.sampling_rate, 7)))
         if delta == 0 or (delta > 0 and not pad):
             return
@@ -935,7 +915,7 @@ class Trace(object):
             except ValueError:
                 # createEmptyDataChunk returns negative ValueError ?? for
                 # too large number of pointes, e.g. 189336539799
-                raise Exception("Time offset between starttime and " + \
+                raise Exception("Time offset between starttime and " +
                                 "trace.starttime too large")
             self.data = np.ma.concatenate((self.data, gap))
             return
@@ -945,18 +925,11 @@ class Trace(object):
             self.data = np.empty(0, dtype=org_dtype)
             return
         # cut from right
-        if pad:
-            delta = abs(delta)
-            total = len(self.data) - delta
-            if endtime == self.stats.starttime:
-                total = 1
-            self.data = self.data[:total]
-        else:
-            delta = abs(delta)
-            total = len(self.data) - delta
-            if endtime == self.stats.starttime:
-                total = 1
-            self.data = self.data[:total]
+        delta = abs(delta)
+        total = len(self.data) - delta
+        if endtime == self.stats.starttime:
+            total = 1
+        self.data = self.data[:total]
 
     def trim(self, starttime=None, endtime=None, pad=False,
              nearest_sample=True, fill_value=None):
@@ -1170,20 +1143,12 @@ class Trace(object):
             tr.simulate(paz_remove=paz_sts2, paz_simulate=paz_1hz)
             tr.plot()
         """
-        global signal
-        if not signal:
-            try:
-                import obspy.signal as signal
-            except ImportError:
-                msg = "Error during import from obspy.signal. Please make " + \
-                      "sure obspy.signal is installed properly."
-                raise ImportError(msg)
-
         # XXX accepting string "self" and using attached PAZ then
         if paz_remove == 'self':
             paz_remove = self.stats.paz
 
-        self.data = signal.seisSim(self.data, self.stats.sampling_rate,
+        from obspy.signal import seisSim
+        self.data = seisSim(self.data, self.stats.sampling_rate,
                 paz_remove=paz_remove, paz_simulate=paz_simulate,
                 remove_sensitivity=remove_sensitivity,
                 simulate_sensitivity=simulate_sensitivity, **kwargs)
@@ -1471,15 +1436,6 @@ class Trace(object):
         >>> tr.data
         array([0, 4, 8])
         """
-        global signal
-        if not signal:
-            try:
-                import obspy.signal as signal
-            except ImportError:
-                msg = "Error during import from obspy.signal. Please make " + \
-                      "sure obspy.signal is installed properly."
-                raise ImportError(msg)
-
         # check if endtime changes and this is not explicitly allowed
         if strict_length and len(self.data) % factor:
             msg = "Endtime of trace would change and strict_length=True."
@@ -1497,7 +1453,8 @@ class Trace(object):
 
         # actual downsampling, as long as sampling_rate is a float we would not
         # need to convert to float, but let's do it as a safety measure
-        self.data = signal.integerDecimation(self.data, factor)
+        from obspy.signal import integerDecimation
+        self.data = integerDecimation(self.data, factor)
         self.stats.sampling_rate = self.stats.sampling_rate / float(factor)
 
         # add processing information to the stats dictionary
