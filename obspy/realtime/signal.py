@@ -562,8 +562,8 @@ def kurtosis(trace, win=3.0, rtmemory_list=None):
     dt=trace.stats.delta
 
     # set some constants for the kurtosis calulation
-    C1 = dt/float(win)
-    a1 = 1.0 - C1
+    a1 = np.exp(-1.0/float(win))
+    C1 = 1.0 - a1
     C2 = (1.0 - a1*a1)/2.0
     bias = -3*C1 - 3.0
 
