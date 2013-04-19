@@ -8,7 +8,7 @@ IRIS Web service client for ObsPy.
     GNU Lesser General Public License, Version 3
     (http://www.gnu.org/copyleft/lesser.html)
 """
-from obspy.core import UTCDateTime, read, Stream
+from obspy import UTCDateTime, read, Stream
 from obspy.core.event import readEvents
 from obspy.core.util import NamedTemporaryFile, BAND_CODE, _getVersionString, \
     loadtxt
@@ -58,7 +58,7 @@ class Client(object):
     .. rubric:: Example
 
     >>> from obspy.iris import Client
-    >>> from obspy.core import UTCDateTime
+    >>> from obspy import UTCDateTime
     >>> client = Client()
     >>> t = UTCDateTime("2010-02-27T06:30:00.000")
     >>> st = client.getWaveform("IU", "ANMO", "00", "BHZ", t, t + 20)
@@ -168,7 +168,7 @@ class Client(object):
         (1) Requesting waveform of a single channel.
 
             >>> from obspy.iris import Client
-            >>> from obspy.core import UTCDateTime
+            >>> from obspy import UTCDateTime
             >>> client = Client()
             >>> t1 = UTCDateTime("2010-02-27T06:30:00.000")
             >>> t2 = UTCDateTime("2010-02-27T07:00:00.000")
@@ -262,7 +262,7 @@ class Client(object):
         .. rubric:: Example
 
         >>> from obspy.iris import Client
-        >>> from obspy.core import UTCDateTime
+        >>> from obspy import UTCDateTime
         >>> client = Client()
         >>> t1 = UTCDateTime('2010-02-27T06:30:00.000')
         >>> t2 = UTCDateTime('2010-02-27T10:30:00.000')
@@ -658,7 +658,7 @@ class Client(object):
         .. rubric:: Example
 
         >>> from obspy.iris import Client
-        >>> from obspy.core import UTCDateTime
+        >>> from obspy import UTCDateTime
         >>> dt = UTCDateTime("2005-01-01T00:00:00")
         >>> client = Client()
         >>> st = client.timeseries("IU", "ANMO", "00", "BHZ", dt, dt+10)
@@ -696,20 +696,14 @@ class Client(object):
         if filename:
             return self._toFileOrData(filename, data, True)
         # create temporary file for writing data
-        tf = NamedTemporaryFile()
-        tf.write(data)
-        # read stream using obspy.mseed
-        tf.seek(0)
-        try:
-            stream = read(tf.name, 'MSEED')
-        except:
-            stream = Stream()
-        tf.close()
-        # remove temporary file:
-        try:
-            os.remove(tf.name)
-        except:
-            pass
+        with NamedTemporaryFile() as tf:
+            tf.write(data)
+            # read stream using obspy.mseed
+            tf.seek(0)
+            try:
+                stream = read(tf.name, 'MSEED')
+            except:
+                stream = Stream()
         return stream
 
     def resp(self, network, station, location="*", channel="*",
@@ -756,7 +750,7 @@ class Client(object):
         .. rubric:: Example
 
         >>> from obspy.iris import Client
-        >>> from obspy.core import UTCDateTime
+        >>> from obspy import UTCDateTime
         >>> client = Client()
         >>> dt = UTCDateTime("2010-02-27T06:30:00.000")
         >>> data = client.resp("IU", "ANMO", "00", "BHZ", dt)
@@ -924,7 +918,7 @@ class Client(object):
         .. rubric:: Example
 
         >>> from obspy.iris import Client
-        >>> from obspy.core import UTCDateTime
+        >>> from obspy import UTCDateTime
         >>> client = Client()
         >>> t1 = UTCDateTime("2006-03-01")
         >>> t2 = UTCDateTime("2006-09-01")
@@ -1020,7 +1014,7 @@ class Client(object):
         .. rubric:: Example
 
         >>> from obspy.iris import Client
-        >>> from obspy.core import UTCDateTime
+        >>> from obspy import UTCDateTime
         >>> client = Client()
         >>> t1 = UTCDateTime("2010-02-27T06:30:00.000")
         >>> t2 = UTCDateTime("2010-02-27T07:00:00.000")
@@ -1052,20 +1046,14 @@ class Client(object):
         if filename:
             return self._toFileOrData(filename, data, True)
         # create temporary file for writing data
-        tf = NamedTemporaryFile()
-        tf.write(data)
-        # read stream using obspy.mseed
-        tf.seek(0)
-        try:
-            stream = read(tf.name, 'MSEED')
-        except:
-            stream = Stream()
-        tf.close()
-        # remove temporary file:
-        try:
-            os.remove(tf.name)
-        except:
-            pass
+        with NamedTemporaryFile() as tf:
+            tf.write(data)
+            # read stream using obspy.mseed
+            tf.seek(0)
+            try:
+                stream = read(tf.name, 'MSEED')
+            except:
+                stream = Stream()
         return stream
 
     def bulkdataselect(self, bulk, quality=None, filename=None,
@@ -1113,7 +1101,7 @@ class Client(object):
         .. rubric:: Example
 
         >>> from obspy.iris import Client
-        >>> from obspy.core import UTCDateTime
+        >>> from obspy import UTCDateTime
         >>> client = Client()
         >>> req = []
         >>> req.append("TA A25A -- BHZ 2010-084T00:00:00 2010-084T00:10:00")
@@ -1154,20 +1142,14 @@ class Client(object):
         if filename:
             return self._toFileOrData(filename, data, True)
         # create temporary file for writing data
-        tf = NamedTemporaryFile()
-        tf.write(data)
-        # read stream using obspy.mseed
-        tf.seek(0)
-        try:
-            stream = read(tf.name, 'MSEED')
-        except:
-            stream = Stream()
-        tf.close()
-        # remove temporary file:
-        try:
-            os.remove(tf.name)
-        except:
-            pass
+        with NamedTemporaryFile() as tf:
+            tf.write(data)
+            # read stream using obspy.mseed
+            tf.seek(0)
+            try:
+                stream = read(tf.name, 'MSEED')
+            except:
+                stream = Stream()
         return stream
 
     def availability(self, network="*", station="*", location="*",
@@ -1251,7 +1233,7 @@ class Client(object):
         .. rubric:: Example
 
         >>> from obspy.iris import Client
-        >>> from obspy.core import UTCDateTime
+        >>> from obspy import UTCDateTime
         >>> client = Client()
         >>> t1 = UTCDateTime("2010-02-27T06:30:00")
         >>> t2 = UTCDateTime("2010-02-27T06:40:00")
@@ -1386,7 +1368,7 @@ class Client(object):
         .. rubric:: Example
 
         >>> from obspy.iris import Client
-        >>> from obspy.core import UTCDateTime
+        >>> from obspy import UTCDateTime
         >>> client = Client()
         >>> dt = UTCDateTime("2005-01-01")
         >>> sacpz = client.sacpz("IU", "ANMO", "00", "BHZ", dt)
@@ -1826,7 +1808,7 @@ class Client(object):
 
             .. plot::
 
-                from obspy.core import UTCDateTime
+                from obspy import UTCDateTime
                 from obspy.iris import Client
                 client = Client()
                 dt = UTCDateTime("2005-01-01")
@@ -1869,21 +1851,18 @@ class Client(object):
                 # ugly way to show an image
                 from matplotlib import image
                 import matplotlib.pyplot as plt
-                # need temporary file for reading into matplotlib
-                tf = NamedTemporaryFile()
-                tf.write(data)
-                tf.close()
                 # create new figure
                 fig = plt.figure()
                 # new axes using full window
                 ax = fig.add_axes([0, 0, 1, 1])
-                # force matplotlib to use internal PNG reader. image.imread
-                # will use PIL if available
-                img = image._png.read_png(tf.name)
+                # need temporary file for reading into matplotlib
+                with NamedTemporaryFile() as tf:
+                    tf.write(data)
+                    # force matplotlib to use internal PNG reader. image.imread
+                    # will use PIL if available
+                    img = image._png.read_png(tf.name)
                 # add image to axis
                 ax.imshow(img)
-                # delete temporary file
-                os.remove(tf.name)
                 # hide axes
                 ax.axison = False
                 # show plot

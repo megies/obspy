@@ -20,7 +20,7 @@ import warnings
 import numpy as np
 import ctypes as C
 import scipy
-from obspy.core import Trace, Stream
+from obspy import Trace, Stream
 from obspy.signal.headers import clibsignal
 from obspy.signal import cosTaper
 
@@ -65,7 +65,7 @@ def xcorr(tr1, tr2, shift_len, full_xcorr=False):
         `ObsPy-users mailing list
        <http://lists.obspy.org/pipermail/obspy-users/2011-March/000056.html>`_
        and
-       `ticket #249 <https://obspy.org/ticket/249>`_.
+       `issue #249 <https://github.com/obspy/obspy/issues/249>`_.
 
     .. rubric:: Example
 

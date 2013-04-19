@@ -14,23 +14,21 @@ import platform
 # create library names
 lib_names = [
      # platform specific library name
-    'libsignal-%s-%s-py%s' % (platform.system(), platform.architecture()[0],
+    'libsignal_%s_%s_py%s' % (platform.system(), platform.architecture()[0],
         ''.join([str(i) for i in platform.python_version_tuple()[:2]])),
      # fallback for pre-packaged libraries
     'libsignal']
 # get default file extension for shared objects
 lib_extension, = sysconfig.get_config_vars('SO')
 # initialize library
-clibsignal = None
 for lib_name in lib_names:
     try:
         clibsignal = C.CDLL(os.path.join(os.path.dirname(__file__), os.pardir,
                                          'lib', lib_name + lib_extension))
+        break
     except Exception, e:
         pass
-    else:
-        break
-if not clibsignal:
+else:
     msg = 'Could not load shared library for obspy.signal.\n\n %s' % (e)
     raise ImportError(msg)
 
@@ -38,47 +36,40 @@ if not clibsignal:
 # create library names
 erlib_names = [
     # platform specific library name
-    'libevresp-%s-%s-py%s' % (platform.system(), platform.architecture()[0],
+    'libevresp_%s_%s_py%s' % (platform.system(), platform.architecture()[0],
         ''.join([str(i) for i in platform.python_version_tuple()[:2]])),
      # fallback for pre-packaged libraries
     'libevresp']
 # initialize library
-clibevresp = None
 for erlib_name in erlib_names:
     try:
         clibevresp = C.CDLL(os.path.join(os.path.dirname(__file__), os.pardir,
                                          'lib', erlib_name + lib_extension))
+        break
     except Exception, e:
         pass
-    else:
-        break
-if not clibevresp:
+else:
     msg = 'Could not load shared library for ' + \
           'obspy.signal.invsim.evalresp\n\n %s' % (e)
     raise ImportError(msg)
 
+clibsignal.calcSteer.argtypes = [
+    C.c_int, C.c_int, C.c_int, C.c_int, C.c_int, C.c_float,
+    np.ctypeslib.ndpointer(dtype='f4', ndim=3, flags='C_CONTIGUOUS'),
+    np.ctypeslib.ndpointer(dtype='c16', ndim=4, flags='C_CONTIGUOUS'),
+]
+clibsignal.calcSteer.restype = C.c_void_p
 
-#XXX moritz: add a note where params are pointers
-clibsignal.bbfk.argtypes = [
-    np.ctypeslib.ndpointer(dtype='int32', ndim=1, flags='C_CONTIGUOUS'),
-    C.c_int,
-    C.POINTER(C.c_void_p),
-    np.ctypeslib.ndpointer(dtype='int32', ndim=1, flags='C_CONTIGUOUS'),
-    C.c_void_p,
-    C.POINTER(C.c_float),
-    C.POINTER(C.c_float),
-    C.POINTER(C.c_int),
-    C.POINTER(C.c_int),
-    C.c_float, C.c_float, C.c_float,
-    C.c_int, C.c_int, C.c_int, C.c_int, C.c_int,
+clibsignal.generalizedBeamformer.argtypes = [
+    np.ctypeslib.ndpointer(dtype='f8', ndim=2, flags='C_CONTIGUOUS'),
+    np.ctypeslib.ndpointer(dtype='f8', ndim=2, flags='C_CONTIGUOUS'),
+    np.ctypeslib.ndpointer(dtype='c16', ndim=4, flags='C_CONTIGUOUS'),
+    np.ctypeslib.ndpointer(dtype='c16', ndim=3, flags='C_CONTIGUOUS'),
+    C.c_int, C.c_int, C.c_int, C.c_int, C.c_int, C.c_int, C.c_int,
+    C.c_double,
     C.c_int,
 ]
-clibsignal.bbfk.restype = C.c_int
-
-clibsignal.cosine_taper.argtypes = [
-    np.ctypeslib.ndpointer(dtype='float64', ndim=1, flags='C_CONTIGUOUS'),
-    C.c_int, C.c_double]
-clibsignal.cosine_taper.restype = C.c_int
+clibsignal.generalizedBeamformer.restype = C.c_int
 
 clibsignal.X_corr.argtypes = [
     np.ctypeslib.ndpointer(dtype='float32', ndim=1, flags='C_CONTIGUOUS'),

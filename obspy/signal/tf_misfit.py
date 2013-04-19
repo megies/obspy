@@ -34,14 +34,17 @@ def cwt(st, dt, w0, fmin, fmax, nf=100., wl='morlet'):
     .. seealso:: [Kristekova2006]_, eq. (4)
 
     :param st: time dependent signal.
-    :param dt: time step between two samples in st
+    :param dt: time step between two samples in st (in seconds)
     :param w0: parameter for the wavelet, tradeoff between time and frequency
         resolution
-    :param f: frequency discretization, type numpy.ndarray.
+    :param fmin: minimum frequency (in Hz)
+    :param fmax: maximum frequency (in Hz)
+    :param nf: number of logarithmically spaced frequencies between fmin and
+        fmax
     :param wl: wavelet to use, for now only 'morlet' is implemented
 
     :return: time frequency representation of st, type numpy.ndarray of complex
-        values.
+        values, shape = (nf, len(st)).
     """
     npts = len(st) * 2
     tmax = (npts - 1) * dt
@@ -1105,7 +1108,7 @@ def plotTfMisfits(st1, st2, dt=0.01, t0=0., fmin=1., fmax=10., nf=100, w0=6,
     if show:
         plt.show()
     else:
-        if len(st1.shape) == 1:
+        if ntr == 1:
             return figs[0]
         else:
             return figs
@@ -1375,7 +1378,7 @@ def plotTfGofs(st1, st2, dt=0.01, t0=0., fmin=1., fmax=10., nf=100, w0=6,
     if show:
         plt.show()
     else:
-        if len(st1.shape) == 1:
+        if ntr == 1:
             return figs[0]
         else:
             return figs
@@ -1423,7 +1426,7 @@ def plotTfr(st, dt=0.01, t0=0., fmin=1., fmax=10., nf=100, w0=6, left=0.1,
 
     .. rubric:: Example
 
-    >>> from obspy.core import read
+    >>> from obspy import read
     >>> tr = read("http://examples.obspy.org/a02i.2008.240.mseed")[0]
     >>> plotTfr(tr.data, dt=tr.stats.delta, fmin=.01, # doctest: +SKIP
     ...         fmax=50., w0=8., nf=512, fft_zero_pad_fac=4)
@@ -1431,7 +1434,7 @@ def plotTfr(st, dt=0.01, t0=0., fmin=1., fmax=10., nf=100, w0=6, left=0.1,
     .. plot::
 
         from obspy.signal.tf_misfit import plotTfr
-        from obspy.core import read
+        from obspy import read
         tr = read("http://examples.obspy.org/a02i.2008.240.mseed")[0]
         plotTfr(tr.data, dt=tr.stats.delta, fmin=.01,
                 fmax=50., w0=8., nf=512, fft_zero_pad_fac=4)
@@ -1553,7 +1556,7 @@ def plotTfr(st, dt=0.01, t0=0., fmin=1., fmax=10., nf=100, w0=6, left=0.1,
     if show:
         plt.show()
     else:
-        if len(st.shape) == 1:
+        if ntr == 1:
             return figs[0]
         else:
             return figs

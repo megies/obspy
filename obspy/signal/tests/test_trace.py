@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 import numpy as np
-from obspy.core import UTCDateTime, Trace, read
+from obspy import UTCDateTime, Trace, read
 from obspy.signal import seisSim, bandpass, bandstop, lowpass, highpass
 from obspy.signal.filter import lowpassCheby2
 import unittest
@@ -157,7 +157,7 @@ class TraceTestCase(unittest.TestCase):
                                      df=df, maxorder=12, ba=False,
                                      freq_passband=True)
         # check that iteratively determined pass band frequency is correct
-        self.assertAlmostEquals(0.0811378285461, fp, places=7)
+        self.assertAlmostEqual(0.0811378285461, fp, places=7)
         tr2.decimate(4, no_filter=True)
         np.testing.assert_array_equal(tr.data, tr2.data)
 

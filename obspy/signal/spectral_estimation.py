@@ -23,13 +23,15 @@ import pickle
 import math
 import bisect
 import numpy as np
-from obspy.core import Trace, Stream
+from obspy import Trace, Stream
 from obspy.core.util import getMatplotlibVersion
 from obspy.signal import cosTaper
 from obspy.signal.util import prevpow2
 
 
 MATPLOTLIB_VERSION = getMatplotlibVersion()
+
+dtiny = np.finfo(0.0).tiny
 
 
 if MATPLOTLIB_VERSION is None:
@@ -232,7 +234,7 @@ class PPSD():
 
     .. rubric:: Basic Usage
 
-    >>> from obspy.core import read
+    >>> from obspy import read
     >>> from obspy.signal import PPSD
 
     >>> st = read()
@@ -614,6 +616,10 @@ class PPSD():
 
         # working with the periods not frequencies later so reverse spectrum
         spec = spec[::-1]
+
+        # avoid calculating log of zero
+        idx = spec < dtiny
+        spec[idx] = dtiny
 
         # go to dB
         spec = np.log10(spec)

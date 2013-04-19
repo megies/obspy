@@ -25,7 +25,7 @@ See: http://www.orfeus-eu.org/Software/softwarelib.html#gse
 """
 
 from distutils import sysconfig
-from obspy.core import UTCDateTime
+from obspy import UTCDateTime
 from obspy.core.util import c_file_p
 import ctypes as C
 import doctest
@@ -39,23 +39,21 @@ import warnings
 # create library names
 lib_names = [
      # platform specific library name
-    'libgse2-%s-%s-py%s' % (platform.system(), platform.architecture()[0],
+    'libgse2_%s_%s_py%s' % (platform.system(), platform.architecture()[0],
         ''.join([str(i) for i in platform.python_version_tuple()[:2]])),
      # fallback for pre-packaged libraries
     'libgse2']
 # get default file extension for shared objects
 lib_extension, = sysconfig.get_config_vars('SO')
 # initialize library
-clibgse2 = None
 for lib_name in lib_names:
     try:
         clibgse2 = C.CDLL(os.path.join(os.path.dirname(__file__), os.pardir,
                                        'lib', lib_name + lib_extension))
+        break
     except Exception, e:
         pass
-    else:
-        break
-if not clibgse2:
+else:
     msg = 'Could not load shared library for obspy.gse2.\n\n %s' % (e)
     raise ImportError(msg)
 

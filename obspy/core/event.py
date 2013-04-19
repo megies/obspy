@@ -31,6 +31,7 @@ import urllib2
 import warnings
 import weakref
 import cStringIO
+from lxml import etree
 
 
 EVENT_ENTRY_POINTS = ENTRY_POINTS['event']
@@ -51,9 +52,9 @@ def readEvents(pathname_or_url=None, format=None, **kwargs):
         attribute is omitted, an example :class:`~obspy.core.event.Catalog`
         object will be returned.
     :type format: str, optional
-    :param format: Format of the file to read. Depending on your ObsPy
-        installation one of ``"QUAKEML"``. See the `Supported Formats`_ section
-        below for a full list of supported formats.
+    :param format: Format of the file to read. One of ``"QUAKEML"``. See the
+        `Supported Formats`_ section below for a full list of supported
+        formats.
     :return: A ObsPy :class:`~obspy.core.event.Catalog` object.
 
     .. rubric:: _`Supported Formats`
@@ -100,11 +101,9 @@ def readEvents(pathname_or_url=None, format=None, **kwargs):
             # if this fails, create a temporary file which is read directly
             # from the file system
             pathname_or_url.seek(0)
-            fh = NamedTemporaryFile()
-            fh.write(pathname_or_url.read())
-            fh.close()
-            cat.extend(_read(fh.name, format, **kwargs).events)
-            os.remove(fh.name)
+            with NamedTemporaryFile() as fh:
+                fh.write(pathname_or_url.read())
+                cat.extend(_read(fh.name, format, **kwargs).events)
         pathname_or_url.seek(0)
     elif pathname_or_url.strip().startswith('<'):
         # XML string
@@ -114,11 +113,9 @@ def readEvents(pathname_or_url=None, format=None, **kwargs):
         # URL
         # extract extension if any
         suffix = os.path.basename(pathname_or_url).partition('.')[2] or '.tmp'
-        fh = NamedTemporaryFile(suffix=suffix)
-        fh.write(urllib2.urlopen(pathname_or_url).read())
-        fh.close()
-        cat.extend(_read(fh.name, format, **kwargs).events)
-        os.remove(fh.name)
+        with NamedTemporaryFile(suffix=suffix) as fh:
+            fh.write(urllib2.urlopen(pathname_or_url).read())
+            cat.extend(_read(fh.name, format, **kwargs).events)
     else:
         # file name
         pathname = pathname_or_url
@@ -891,14 +888,14 @@ class WaveformStreamID(__WaveformStreamID):
     location_code, and channel_code. However, additional information, e. g.,
     sampling rate, can be referenced by the resource_uri.
 
-    :type network: str
-    :param network: Network code.
-    :type station: str
-    :param station: Station code.
-    :type location: str, optional
-    :param location: Location code.
-    :type channel: str, optional
-    :param channel: Channel code.
+    :type network_code: str
+    :param network_code: Network code.
+    :type station_code: str
+    :param station_code: Station code.
+    :type location_code: str, optional
+    :param location_code: Location code.
+    :type channel_code: str, optional
+    :param channel_code: Channel code.
     :type resource_uri: :class:`~obspy.core.event.ResourceIdentifier`, optional
     :param resource_uri: Resource identifier for the waveform stream.
     :type seed_string: str, optional
@@ -982,7 +979,7 @@ class Amplitude(__Amplitude):
     the visible end of a record for duration magnitudes.
 
     :type resource_id: :class:`~obspy.core.event.ResourceIdentifier`
-    :param resource_id: Resource identifier of Pick.
+    :param resource_id: Resource identifier of Amplitude.
     :type generic_amplitude: float
     :param generic_amplitude: Amplitude value.
     :type generic_amplitude_errors: :class:`~obspy.core.util.AttribDict`
@@ -1334,7 +1331,8 @@ __OriginUncertainty = _eventTypeClassFactory("__OriginUncertainty",
                       ("max_horizontal_uncertainty", float),
                       ("azimuth_max_horizontal_uncertainty", float),
                       ("confidence_ellipsoid", ConfidenceEllipsoid),
-                      ("preferred_description", OriginUncertaintyDescription)])
+                      ("preferred_description", OriginUncertaintyDescription),
+                      ("confidence_level", float)])
 
 
 class OriginUncertainty(__OriginUncertainty):
@@ -1368,6 +1366,9 @@ class OriginUncertainty(__OriginUncertainty):
             * uncertainty ellipse
             * confidence ellipsoid
             * probability density function
+    :type confidence_level: float, optional
+    :param confidence_level: Confidence level of the uncertainty, given in
+        percent.
     """
 
 
@@ -1447,8 +1448,8 @@ class Origin(__Origin):
     :type quality: :class:`~obspy.core.event.OriginQuality`, optional
     :param quality: Additional parameters describing the quality of an origin
         determination.
-    :type type: str, optional
-    :param type: Describes the origin type. Allowed values are the
+    :type origin_type: str, optional
+    :param origin_type: Describes the origin type. Allowed values are the
         following:
             * ``"rupture start"``
             * ``"centroid"``
@@ -1456,6 +1457,10 @@ class Origin(__Origin):
             * ``"hypocenter"``
             * ``"amplitude"``
             * ``"macroseismic"``
+    :type origin_uncertainty: :class:`~obspy.core.event.OriginUncertainty`,
+        optional
+    :param origin_uncertainty: Describes the location uncertainties of an
+        origin.
     :type region: str, optional
     :param region: Region name.
     :type evaluation_mode: str, optional
@@ -1671,8 +1676,8 @@ class EventDescription(__EventDescription):
 
     :type text: str, optional
     :param text: Free-form text with earthquake description.
-    :type event_description_type: str, optional
-    :param event_description_type: Category of earthquake description. Values
+    :type type: str, optional
+    :param type: Category of earthquake description. Values
         can be taken from the following:
             * ``"felt report"``
             * ``"Flinn-Engdahl region"``
@@ -1889,7 +1894,6 @@ class PrincipalAxes(__PrincipalAxes):
 
 __MomentTensor = _eventTypeClassFactory("__MomentTensor",
     class_attributes=[("resource_id", ResourceIdentifier),
-                      ("data_used", DataUsed),
                       ("derived_origin_id", ResourceIdentifier),
                       ("moment_magnitude_id", ResourceIdentifier),
                       ("scalar_moment", float, ATTRIBUTE_HAS_ERRORS),
@@ -1902,11 +1906,10 @@ __MomentTensor = _eventTypeClassFactory("__MomentTensor",
                       ("greens_function_id", ResourceIdentifier),
                       ("filter_id", ResourceIdentifier),
                       ("source_time_function", SourceTimeFunction),
+                      ("data_used", DataUsed),
                       ("method_id", ResourceIdentifier),
                       ("category", MomentTensorCategory),
                       ("inversion_type", MTInversionType),
-                      ("evaluation_mode", EvaluationMode),
-                      ("evaluation_status", EvaluationStatus),
                       ("creation_info", CreationInfo)],
     class_contains=['comments'])
 
@@ -1918,8 +1921,6 @@ class MomentTensor(__MomentTensor):
 
     :type resource_id: :class:`~obspy.core.event.ResourceIdentifier`
     :param resource_id: Resource identifier of MomentTensor.
-    :type data_used: :class:`~obspy.core.event.DataUsed`, optional
-    :param data_used: Describes waveform data used for moment-tensor inversion.
     :type derived_origin_id: :class:`~obspy.core.event.ResourceIdentifier`
     :param derived_origin_id: Refers to the resource_id of the Origin derived
         in the moment tensor inversion.
@@ -1954,6 +1955,8 @@ class MomentTensor(__MomentTensor):
     :type filter_id: :class:`~obspy.core.event.ResourceIdentifier`, optional
     :param filter_id: Resource identifier of the filter setup used in moment
         tensor inversion.
+    :type data_used: :class:`~obspy.core.event.DataUsed`, optional
+    :param data_used: Describes waveform data used for moment-tensor inversion.
     :type source_time_function: :class:`~obspy.core.event.SourceTimeFunction`,
         optional
     :param source_time_function: Source time function used in moment-tensor
@@ -1972,21 +1975,6 @@ class MomentTensor(__MomentTensor):
             * ``"general"``,
             * ``"zero trace"``,
             * ``"double couple"``
-    :type evaluation_mode: str, optional
-    :param evaluation_mode: Evaluation mode of MomentTensor. Allowed values are
-        the following:
-            * ``"manual"``
-            * ``"automatic"``
-    :type evaluation_status: :class:`~obspy.core.event.EvaluationStatus`,
-        optional
-    :param evaluation_status: Evaluation status of MomentTensor. Allowed values
-        are the following:
-            * ``"preliminary"``
-            * ``"confirmed"``
-            * ``"reviewed"``
-            * ``"final"``
-            * ``"rejected"``
-            * ``"reported"``
     :type comments: list of :class:`~obspy.core.event.Comment`, optional
     :param comments: Additional comments.
     :type creation_info: :class:`~obspy.core.event.CreationInfo`, optional
@@ -1997,7 +1985,6 @@ class MomentTensor(__MomentTensor):
 
 __FocalMechanism = _eventTypeClassFactory("__FocalMechanism",
     class_attributes=[("resource_id", ResourceIdentifier),
-                      ("waveform_id", WaveformStreamID),
                       ("triggering_origin_id", ResourceIdentifier),
                       ("nodal_planes", NodalPlanes),
                       ("principal_axes", PrincipalAxes),
@@ -2006,6 +1993,9 @@ __FocalMechanism = _eventTypeClassFactory("__FocalMechanism",
                       ("misfit", float),
                       ("station_distribution_ratio", float),
                       ("method_id", ResourceIdentifier),
+                      ("waveform_id", WaveformStreamID),
+                      ("evaluation_mode", EvaluationMode),
+                      ("evaluation_status", EvaluationStatus),
                       ("moment_tensor", MomentTensor),
                       ("creation_info", CreationInfo)],
     class_contains=['comments'])
@@ -2019,7 +2009,6 @@ class FocalMechanism(__FocalMechanism):
     moment tensor. The moment tensor description is provided by objects of the
     class MomentTensor which can be specified as child elements of
     FocalMechanism.
-
     :type resource_id: :class:`~obspy.core.event.ResourceIdentifier`
     :param resource_id: Resource identifier of FocalMechanism.
     :type triggering_origin_id: :class:`~obspy.core.event.ResourceIdentifier`,
@@ -2048,6 +2037,20 @@ class FocalMechanism(__FocalMechanism):
         of the focal mechanism.
     :type waveform_id: :class:`~obspy.core.event.WaveformStreamID`, optional
     :param waveform_id: Identifies the waveform stream.
+    :type evaluation_mode: str, optional
+    :param evaluation_mode: Evaluation mode of Amplitude. Allowed values are
+        the following:
+            * ``"manual"``
+            * ``"automatic"``
+    :type evaluation_status: str, optional
+    :param evaluation_status: Evaluation status of Amplitude. Allowed values
+        are the following:
+            * ``"preliminary"``
+            * ``"confirmed"``
+            * ``"reviewed"``
+            * ``"final"``
+            * ``"rejected"``
+            * ``"reported"``
     :type moment_tensor: :class:`~obspy.core.event.MomentTensor`, optional
     :param moment_tensor: Moment tensor description for this focal mechanism.
     :type comments: list of :class:`~obspy.core.event.Comment`, optional
@@ -2153,15 +2156,18 @@ class Event(__Event):
         2011-03-11T05:46:24.120000Z | +38.297, +142.373 | 9.1 MW
         """
         out = ''
+        origin = None
         if self.origins:
-            out += '%s | %+7.3f, %+8.3f' % (self.origins[0].time,
-                                            self.origins[0].latitude,
-                                            self.origins[0].longitude)
+            origin = self.preferred_origin() or self.origins[0]
+            out += '%s | %+7.3f, %+8.3f' % (origin.time,
+                                            origin.latitude,
+                                            origin.longitude)
         if self.magnitudes:
-            out += ' | %s %-2s' % (self.magnitudes[0].mag,
-                                   self.magnitudes[0].magnitude_type)
-        if self.origins and self.origins[0].evaluation_mode:
-            out += ' | %s' % (self.origins[0].evaluation_mode)
+            magnitude = self.preferred_magnitude() or self.magnitudes[0]
+            out += ' | %s %-2s' % (magnitude.mag,
+                                   magnitude.magnitude_type)
+        if origin and origin.evaluation_mode:
+            out += ' | %s' % (origin.evaluation_mode)
         return out
 
     def __str__(self):
@@ -2170,6 +2176,36 @@ class Event(__Event):
         """
         return "Event:\t%s\n\n%s" % (self.short_str(),
             "\n".join(super(Event, self).__str__().split("\n")[1:]))
+
+    def preferred_origin(self):
+        """
+        Returns the preferred origin
+        """
+        try:
+            return ResourceIdentifier(self.preferred_origin_id).\
+                getReferredObject()
+        except KeyError:
+            return None
+
+    def preferred_magnitude(self):
+        """
+        Returns the preferred origin
+        """
+        try:
+            return ResourceIdentifier(self.preferred_magnitude_id).\
+                getReferredObject()
+        except KeyError:
+            return None
+
+    def preferred_focal_mechanism(self):
+        """
+        Returns the preferred origin
+        """
+        try:
+            return ResourceIdentifier(self.preferred_focal_mechanism_id).\
+                getReferredObject()
+        except KeyError:
+            return None
 
 
 class Catalog(object):
@@ -2536,10 +2572,9 @@ class Catalog(object):
         :type filename: string
         :param filename: The name of the file to write.
         :type format: string
-        :param format: The format to write must be specified. Depending on your
-            ObsPy installation one of ``"QUAKEML"``. See the
-            `Supported Formats`_ section below for a full list of supported
-            formats.
+        :param format: The format to write must be specified. One of
+            ``"QUAKEML"``. See the `Supported Formats`_ section below for a
+            full list of supported formats.
         :param kwargs: Additional keyword arguments passed to the underlying
             waveform writer method.
 
@@ -2787,17 +2822,12 @@ class Catalog(object):
 
 def validate(xml_file):
     """
-    Validates a QuakeML file against the QuakeML 1.2 RC4 schema. Returns either
-    True or False.
-
-    This method requires lxml and will raise an ImportError if it does not
-    exist.
+    Validates a QuakeML file against the QuakeML 1.2 RC4 XML Schema. Returns
+    either True or False.
     """
     # Get the schema location.
     schema_location = os.path.dirname(inspect.getfile(inspect.currentframe()))
     schema_location = os.path.join(schema_location, "docs", "QuakeML-1.2.xsd")
-
-    from lxml import etree
 
     xmlschema = etree.XMLSchema(etree.parse(schema_location))
     xmldoc = etree.parse(xml_file)

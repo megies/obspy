@@ -17,6 +17,7 @@ libraries and applications, our build tools and our web sites.
     * Felix Bernauer
     * Moritz Beyreuther
     * Martin van Driel
+    * Fabian Engels
     * Sven Egdorf
     * Conny Hammer
     * Sebastian Heimann
@@ -30,12 +31,14 @@ libraries and applications, our build tools and our web sites.
     * Thomas Lecocq
     * Philippe Lesage
     * Anthony Lomax
+    * Alessia Maggi
     * Tobias Megies
     * Alberto Michelini
     * Nathaniel C. Miller
     * Tom Richter
     * Emiliano Russo
     * Claudio Satriano
+    * Joachim Saul
     * Chris Scheingraber
     * Christian Sippl
     * Arthur Snoke

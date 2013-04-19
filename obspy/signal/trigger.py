@@ -27,8 +27,9 @@ characteristic functions and a coincidence triggering routine.
 
 import warnings
 import ctypes as C
+from collections import deque
 import numpy as np
-from obspy.core import UTCDateTime
+from obspy import UTCDateTime
 from obspy.signal.headers import clibsignal, head_stalta_t
 
 
@@ -237,6 +238,7 @@ def classicSTALTAPy(a, nsta, nlta):
     # pad zeros of length nlta to avoid overfit and
     # return STA/LTA ratio
     sta[0:nlta_1] = 0
+    lta[0:nlta_1] = 1  # avoid devision by zero
     return sta / lta
 
 
@@ -266,6 +268,7 @@ def delayedSTALTA(a, nsta, nlta):
         lta[i] = (a[i - nsta - 1] ** 2 + a[i - nsta - nlta - 1] ** 2) / \
                  nlta + lta[i - 1]
     sta[0:nlta + nsta + 50] = 0
+    lta[0:nlta + nsta + 50] = 1  # avoid division by zero
     return sta / lta
 
 
@@ -338,8 +341,8 @@ def triggerOnset(charfct, thres1, thres2, max_len=9e99, max_len_delete=False):
         return []
     ind2 = np.where(charfct > thres2)[0]
     #
-    on = [ind1[0]]
-    of = [-1]
+    on = deque([ind1[0]])
+    of = deque([-1])
     of.extend(ind2[np.diff(ind2) > 1].tolist())
     on.extend(ind1[np.where(np.diff(ind1) > 1)[0] + 1].tolist())
     # include last pick if trigger is on or drop it
@@ -354,14 +357,14 @@ def triggerOnset(charfct, thres1, thres2, max_len=9e99, max_len_delete=False):
     pick = []
     while on[-1] > of[0]:
         while on[0] <= of[0]:
-            on.pop(0)
+            on.popleft()
         while of[0] < on[0]:
-            of.pop(0)
+            of.popleft()
         if of[0] - on[0] > max_len:
             if max_len_delete:
-                on.pop(0)
+                on.popleft()
                 continue
-            of.insert(0, on[0] + max_len)
+            of.appendleft(on[0] + max_len)
         pick.append([on[0], of[0]])
     return np.array(pick)
 

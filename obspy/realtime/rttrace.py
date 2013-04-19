@@ -9,7 +9,8 @@ Module for handling ObsPy RtTrace objects.
     (http://www.gnu.org/copyleft/lesser.html)
 """
 
-from obspy.core import Trace, Stats
+from obspy import Trace
+from obspy.core import Stats
 from obspy.realtime import signal
 from obspy.realtime.rtmemory import RtMemory
 import copy
@@ -21,11 +22,13 @@ import warnings
 # lower case - values are tuples: (function name, number of RtMemory objects)
 REALTIME_PROCESS_FUNCTIONS = {
     'scale': (signal.scale, 0),
+    'offset': (signal.offset, 0),
     'integrate': (signal.integrate, 1),
     'differentiate': (signal.differentiate, 1),
     'boxcar': (signal.boxcar, 1),
     'tauc': (signal.tauc, 2),
     'mwpintegral': (signal.mwpIntegral, 1),
+    'kurtosis': (signal.kurtosis, 3),
 }
 
 
@@ -59,7 +62,7 @@ class RtTrace(Trace):
 
         >>> import numpy as np
         >>> from obspy.realtime import RtTrace
-        >>> from obspy.core import read
+        >>> from obspy import read
         >>> from obspy.realtime.signal import calculateMwpMag
         >>> data_trace = read('/path/to/II.TLY.BHZ.SAC')[0]
         >>> len(data_trace)

@@ -10,7 +10,7 @@ NERIES Web service client for ObsPy.
     GNU Lesser General Public License, Version 3
     (http://www.gnu.org/copyleft/lesser.html)
 """
-from obspy.core import UTCDateTime, read, Stream
+from obspy import UTCDateTime, read, Stream
 from obspy.core.event import readEvents
 from obspy.core.util import _getVersionString, NamedTemporaryFile, guessDelta
 from suds.client import Client as SudsClient
@@ -20,7 +20,6 @@ from suds.xsd.sxbase import SchemaObject
 import StringIO
 import functools
 import json
-import os
 import platform
 import urllib
 import urllib2
@@ -520,7 +519,7 @@ class Client(object):
         .. rubric:: Example
 
         >>> from obspy.neries import Client
-        >>> from obspy.core import UTCDateTime
+        >>> from obspy import UTCDateTime
         >>> client = Client(user='test@obspy.org')
         >>> dt = UTCDateTime("2011-01-01T00:00:00")
         >>> result = client.getInventory('GE', 'SNAA', '', 'BHZ', dt, dt+10,
@@ -638,21 +637,15 @@ class Client(object):
         NL.WIT..BHN | 2009-04-01T00:00:00.010200Z - ... | 40.0 Hz, 1201 samples
         NL.WIT..BHE | 2009-04-01T00:00:00.010200Z - ... | 40.0 Hz, 1201 samples
         """
-        tf = NamedTemporaryFile()
-        self.saveWaveform(tf._fileobj, network, station, location, channel,
-                          starttime, endtime, format=format)
-        # read stream using obspy.mseed
-        tf.seek(0)
-        try:
-            stream = read(tf.name, 'MSEED')
-        except:
-            stream = Stream()
-        tf.close()
-        # remove temporary file:
-        try:
-            os.remove(tf.name)
-        except:
-            pass
+        with NamedTemporaryFile() as tf:
+            self.saveWaveform(tf._fileobj, network, station, location, channel,
+                              starttime, endtime, format=format)
+            # read stream using obspy.mseed
+            tf.seek(0)
+            try:
+                stream = read(tf.name, 'MSEED')
+            except:
+                stream = Stream()
         # trim stream
         stream.trim(starttime, endtime)
         return stream

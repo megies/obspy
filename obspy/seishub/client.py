@@ -13,7 +13,7 @@ from datetime import datetime
 from lxml import objectify
 from lxml.etree import Element, SubElement, tostring
 from math import log
-from obspy.core import UTCDateTime
+from obspy import UTCDateTime
 from obspy.core.util import guessDelta
 from obspy.core.util.decorator import deprecated_keywords
 from obspy.xseed import Parser
@@ -100,7 +100,7 @@ class Client(object):
     .. rubric:: Example
 
     >>> from obspy.seishub import Client
-    >>> from obspy.core import UTCDateTime
+    >>> from obspy import UTCDateTime
     >>>
     >>> t = UTCDateTime("2009-09-03 00:00:00")
     >>> client = Client()
@@ -300,6 +300,14 @@ class _BaseRESTClient(object):
         :param xml_string: XML for a send request (PUT/POST)
         :rtype: tuple
         :return: (HTTP status code, HTTP status message)
+
+        .. rubric:: Example
+
+        >>> c = Client()
+        >>> xseed_file = "dataless.seed.BW_UH1.xml"
+        >>> xml_str = open(xseed_file).read()
+        >>> c.station.putResource(xseed_file, xml_str)
+        (201, 'OK')
         """
         url = '/'.join([self.client.base_url, 'xml', self.package,
                         self.resourcetype, resource_name])
@@ -432,7 +440,7 @@ master/seishub/plugins/seismology/waveform.py
                 for node in root.getchildren()]
 
     def getWaveform(self, network, station, location=None, channel=None,
-                    starttime=None, endtime=None, apply_filter=False,
+                    starttime=None, endtime=None, apply_filter=None,
                     getPAZ=False, getCoordinates=False,
                     metadata_timecheck=True, **kwargs):
         """
