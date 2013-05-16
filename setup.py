@@ -456,8 +456,9 @@ def setupPackage():
         namespace_packages=[],
         zip_safe=False,
         install_requires=INSTALL_REQUIRES,
-        download_url=("https://github.com/obspy/obspy/zipball/master"
-            "#egg=obspy=dev"),  # this is needed for "easy_install obspy==dev"
+        # this is needed for "easy_install obspy==dev"
+        download_url="https://github.com/obspy/obspy/zipball/master"
+                     "#egg=obspy=dev",
         include_package_data=True,
         entry_points=ENTRY_POINTS,
         ext_package='obspy.lib',
