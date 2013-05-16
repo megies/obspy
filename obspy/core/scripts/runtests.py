@@ -83,7 +83,7 @@ and report everything, you would run::
 """
 
 from obspy.core.util import DEFAULT_MODULES, ALL_MODULES, NETWORK_MODULES
-from obspy import __version__
+from obspy.core.util.version import get_git_version
 from optparse import OptionParser, OptionGroup
 import copy
 import doctest
@@ -188,7 +188,7 @@ def _createReport(ttrs, timetaken, log, server, hostname):
     failures = 0
     skipped = 0
     try:
-        installed = __version__
+        installed = get_git_version()
     except:
         installed = ''
     result['obspy']['installed'] = installed
