@@ -8,6 +8,7 @@ before_install:
   - git describe
 install:
   - sudo python setup.py -q install
+  - python -c "import obspy; print obspy.__version__"
 script:
   - sudo obspy-runtests -n travis-ci -r
 notifications:
