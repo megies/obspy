@@ -12,6 +12,7 @@ before_install:
 install:
   - sudo python setup.py -q install
   - python -c "import obspy; print obspy.__version__"
+  - cd /usr/local/lib/python2.7/dist-packages/obspy-*; git rev-parse --show-toplevel
 script:
   - sudo obspy-runtests -n travis-ci -r
 notifications:
