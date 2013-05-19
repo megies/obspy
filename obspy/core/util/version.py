@@ -49,6 +49,10 @@ VERSION_FILE = os.path.join(OBSPY_ROOT, "obspy", "RELEASE-VERSION")
 def call_git_describe(abbrev=4):
     print OBSPY_ROOT
     try:
+        p = Popen(['ls', '-la'],
+                  cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
+        p.stderr.close()
+        print p.stdout.readlines()
         p = Popen(['git', 'rev-parse', '--show-toplevel'],
                   cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
         p.stderr.close()
