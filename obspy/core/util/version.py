@@ -47,6 +47,7 @@ VERSION_FILE = os.path.join(OBSPY_ROOT, "obspy", "RELEASE-VERSION")
 
 
 def call_git_describe(abbrev=4):
+    print OBSPY_ROOT
     try:
         p = Popen(['git', 'rev-parse', '--show-toplevel'],
                   cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
@@ -54,6 +55,8 @@ def call_git_describe(abbrev=4):
         path = p.stdout.readlines()[0].strip()
     except:
         return None
+    print path
+    print os.path.normpath(path)
     if os.path.normpath(path) != OBSPY_ROOT:
         return None
     try:
