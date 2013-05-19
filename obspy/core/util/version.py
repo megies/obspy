@@ -41,9 +41,8 @@ from subprocess import Popen, PIPE
 
 script_dir = os.path.abspath(os.path.dirname(inspect.getfile(
                                              inspect.currentframe())))
-OBSPY_ROOT = os.path.abspath(os.path.join(script_dir, os.pardir,
-                                          os.pardir, os.pardir))
-VERSION_FILE = os.path.join(OBSPY_ROOT, "obspy", "RELEASE-VERSION")
+OBSPY_ROOT = os.path.abspath(os.path.join(script_dir, os.pardir, os.pardir))
+VERSION_FILE = os.path.join(OBSPY_ROOT, "RELEASE-VERSION")
 
 
 def call_git_describe(abbrev=4):
@@ -52,7 +51,7 @@ def call_git_describe(abbrev=4):
         p = Popen(['ls', '-la'],
                   cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
         p.stderr.close()
-        print p.stdout.readlines()
+        print p.stdout.read()
         p = Popen(['git', 'rev-parse', '--show-toplevel'],
                   cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
         p.stderr.close()
