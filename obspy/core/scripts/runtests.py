@@ -191,6 +191,7 @@ def _createReport(ttrs, timetaken, log, server, hostname):
         installed = get_git_version()
     except:
         installed = ''
+    print "installed: ", installed
     result['obspy']['installed'] = installed
     for module in sorted(ALL_MODULES):
         result['obspy'][module] = {}
