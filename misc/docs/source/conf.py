@@ -33,6 +33,7 @@ extensions = ['sphinx.ext.intersphinx',
               'matplotlib.sphinxext.only_directives',
               'sphinx.ext.mathjax',
               # local extensions
+              'notebook_sphinxext',
               'autosummary',
               'plot_directive',
               'obspydoc'
