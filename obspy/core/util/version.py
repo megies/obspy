@@ -63,7 +63,8 @@ def call_git_describe(abbrev=4):
         p.stderr.close()
         line = p.stdout.readlines()[0]
         import subprocess
-        print subprocess.call(['git', 'status'], cwd=OBSPY_ROOT)
+        subprocess.call(['git', 'status'], cwd=OBSPY_ROOT)
+        subprocess.call(['ls', '-la', '/home/travis/build/megies/obspy/obspy/xseed/docs/SEEDManual_V2.4.pdf'], cwd=OBSPY_ROOT)
         # (this line prevents official releases)
         # should work again now, see #482 and obspy/obspy@b437f31
         if "-" not in line and "." not in line:
