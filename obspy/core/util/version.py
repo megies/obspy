@@ -47,8 +47,6 @@ VERSION_FILE = os.path.join(OBSPY_ROOT, "obspy", "RELEASE-VERSION")
 
 
 def call_git_describe(abbrev=4):
-    import subprocess
-    print subprocess.call(['git', 'status'], cwd=OBSPY_ROOT)
     try:
         p = Popen(['git', 'rev-parse', '--show-toplevel'],
                   cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
@@ -64,6 +62,8 @@ def call_git_describe(abbrev=4):
                   cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
         p.stderr.close()
         line = p.stdout.readlines()[0]
+        import subprocess
+        print subprocess.call(['git', 'status'], cwd=OBSPY_ROOT)
         # (this line prevents official releases)
         # should work again now, see #482 and obspy/obspy@b437f31
         if "-" not in line and "." not in line:
