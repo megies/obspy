@@ -61,6 +61,11 @@ def call_git_describe(abbrev=4):
                    '--always'],
                   cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
         p.stderr.close()
+        print p.stdout.read()
+        p = Popen(['git', 'describe', '--dirty', '--abbrev=%d' % abbrev,
+                   '--always'],
+                  cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
+        p.stderr.close()
         line = p.stdout.readlines()[0]
         # (this line prevents official releases)
         # should work again now, see #482 and obspy/obspy@b437f31
