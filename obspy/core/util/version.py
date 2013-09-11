@@ -57,11 +57,10 @@ def call_git_describe(abbrev=4):
     if os.path.normpath(path) != OBSPY_ROOT:
         return None
     try:
-        p = Popen(['git', 'describe', '--dirty', '--abbrev=%d' % abbrev,
-                   '--always'],
-                  cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
-        p.stderr.close()
-        print p.stdout.read()
+        p2 = Popen(['git', 'status'],
+                   cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
+        p2.stderr.close()
+        print "\n".join(p2.stdout.readlines())
         p = Popen(['git', 'describe', '--dirty', '--abbrev=%d' % abbrev,
                    '--always'],
                   cwd=OBSPY_ROOT, stdout=PIPE, stderr=PIPE)
