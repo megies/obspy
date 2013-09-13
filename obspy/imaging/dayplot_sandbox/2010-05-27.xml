@@ -1,0 +1,231 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:quakeml xmlns:ns0="http://quakeml.org/xmlns/quakeml/1.2" xmlns="http://quakeml.org/xmlns/bed/1.2">
+  <eventParameters publicID="smi:local/e31eeffa-cae2-4177-bf92-fb72b1415642">
+    <event publicID="smi:de.erdbeben-in-bayern/event/20100622214704/1">
+      <creationInfo>
+        <agencyID>Erdbebendienst Bayern</agencyID>
+        <agencyURI>smi:de.erdbeben-in-bayern/agency</agencyURI>
+        <author>megies</author>
+      </creationInfo>
+      <origin publicID="smi:de.erdbeben-in-bayern/origin/20100622214704/1">
+        <time>
+          <value>2010-05-27T16:24:31.802036Z</value>
+        </time>
+        <latitude>
+          <value>48.0456</value>
+        </latitude>
+        <longitude>
+          <value>11.6457</value>
+        </longitude>
+        <depth>
+          <value>4640.576</value>
+          <uncertainty>360.124613583</uncertainty>
+        </depth>
+        <depthType>from location</depthType>
+        <methodID>smi:de.erdbeben-in-bayern/location_method/NLLoc</methodID>
+        <earthModelID>smi:de.erdbeben-in-bayern/earth_model/UH</earthModelID>
+        <quality>
+          <associatedPhaseCount>8</associatedPhaseCount>
+          <usedPhaseCount>8</usedPhaseCount>
+          <associatedStationCount>4</associatedStationCount>
+          <usedStationCount>4</usedStationCount>
+          <depthPhaseCount>0</depthPhaseCount>
+          <standardError>0.028597</standardError>
+          <azimuthalGap>134.0</azimuthalGap>
+          <minimumDistance>1.72496154982</minimumDistance>
+          <maximumDistance>8.34046873627</maximumDistance>
+          <medianDistance>3.54469168858</medianDistance>
+        </quality>
+        <originUncertainty>
+          <preferredDescription>uncertainty ellipse</preferredDescription>
+          <minHorizontalUncertainty>0.265791274229</minHorizontalUncertainty>
+          <maxHorizontalUncertainty>0.293646266911</maxHorizontalUncertainty>
+          <azimuthMaxHorizontalUncertainty>0.0</azimuthMaxHorizontalUncertainty>
+        </originUncertainty>
+        <arrival publicID="smi:de.erdbeben-in-bayern/arrival/20100622214704/1">
+          <pickID>smi:de.erdbeben-in-bayern/pick/20100622214704/1</pickID>
+          <phase>P</phase>
+          <azimuth>349.0</azimuth>
+          <distance>4.05470180771</distance>
+          <timeResidual>-0.036</timeResidual>
+          <timeWeight>1.0811</timeWeight>
+        </arrival>
+        <arrival publicID="smi:de.erdbeben-in-bayern/arrival/20100622214704/2">
+          <pickID>smi:de.erdbeben-in-bayern/pick/20100622214704/2</pickID>
+          <phase>S</phase>
+          <azimuth>348.5</azimuth>
+          <distance>4.05470180771</distance>
+          <timeResidual>0.0028</timeResidual>
+          <timeWeight>1.0811</timeWeight>
+        </arrival>
+        <arrival publicID="smi:de.erdbeben-in-bayern/arrival/20100622214704/3">
+          <pickID>smi:de.erdbeben-in-bayern/pick/20100622214704/3</pickID>
+          <phase>P</phase>
+          <azimuth>62.0</azimuth>
+          <distance>3.03468156945</distance>
+          <timeResidual>-0.0165</timeResidual>
+          <timeWeight>1.0811</timeWeight>
+        </arrival>
+        <arrival publicID="smi:de.erdbeben-in-bayern/arrival/20100622214704/4">
+          <pickID>smi:de.erdbeben-in-bayern/pick/20100622214704/4</pickID>
+          <phase>S</phase>
+          <azimuth>61.3</azimuth>
+          <distance>3.03468156945</distance>
+          <timeResidual>0.0339</timeResidual>
+          <timeWeight>1.0811</timeWeight>
+        </arrival>
+        <arrival publicID="smi:de.erdbeben-in-bayern/arrival/20100622214704/5">
+          <pickID>smi:de.erdbeben-in-bayern/pick/20100622214704/5</pickID>
+          <phase>P</phase>
+          <azimuth>203.0</azimuth>
+          <distance>1.72496154982</distance>
+          <timeResidual>-0.0223</timeResidual>
+          <timeWeight>1.0811</timeWeight>
+        </arrival>
+        <arrival publicID="smi:de.erdbeben-in-bayern/arrival/20100622214704/6">
+          <pickID>smi:de.erdbeben-in-bayern/pick/20100622214704/6</pickID>
+          <phase>S</phase>
+          <azimuth>203.5</azimuth>
+          <distance>1.72496154982</distance>
+          <timeResidual>-0.0091</timeResidual>
+          <timeWeight>1.0811</timeWeight>
+        </arrival>
+        <arrival publicID="smi:de.erdbeben-in-bayern/arrival/20100622214704/7">
+          <pickID>smi:de.erdbeben-in-bayern/pick/20100622214704/7</pickID>
+          <phase>P</phase>
+          <azimuth>259.4</azimuth>
+          <distance>8.34046873627</distance>
+          <timeResidual>0.0519</timeResidual>
+          <timeWeight>1.0811</timeWeight>
+        </arrival>
+        <arrival publicID="smi:de.erdbeben-in-bayern/arrival/20100622214704/8">
+          <pickID>smi:de.erdbeben-in-bayern/pick/20100622214704/8</pickID>
+          <phase>S</phase>
+          <azimuth>259.2</azimuth>
+          <distance>8.34046873627</distance>
+          <timeResidual>-0.0118</timeResidual>
+          <timeWeight>0.4324</timeWeight>
+        </arrival>
+      </origin>
+      <magnitude publicID="smi:de.erdbeben-in-bayern/magnitude/20100622214704/1">
+        <mag>
+          <value>2.08662460284</value>
+          <uncertainty>0.0997390347407</uncertainty>
+        </mag>
+        <type>Ml</type>
+        <methodID>smi:de.erdbeben-in-bayern/magnitude_method/obspy</methodID>
+        <stationCount>4</stationCount>
+        <stationMagnitudeContribution>
+          <stationMagnitudeID>smi:de.erdbeben-in-bayern/station_magnitude/20100622214704/1</stationMagnitudeID>
+          <weight>0.25</weight>
+        </stationMagnitudeContribution>
+        <stationMagnitudeContribution>
+          <stationMagnitudeID>smi:de.erdbeben-in-bayern/station_magnitude/20100622214704/2</stationMagnitudeID>
+          <weight>0.25</weight>
+        </stationMagnitudeContribution>
+        <stationMagnitudeContribution>
+          <stationMagnitudeID>smi:de.erdbeben-in-bayern/station_magnitude/20100622214704/3</stationMagnitudeID>
+          <weight>0.25</weight>
+        </stationMagnitudeContribution>
+        <stationMagnitudeContribution>
+          <stationMagnitudeID>smi:de.erdbeben-in-bayern/station_magnitude/20100622214704/4</stationMagnitudeID>
+          <weight>0.25</weight>
+        </stationMagnitudeContribution>
+      </magnitude>
+      <stationMagnitude publicID="smi:de.erdbeben-in-bayern/station_magnitude/20100622214704/1">
+        <originID>smi:de.erdbeben-in-bayern/origin/20100622214704/1</originID>
+        <mag>
+          <value>2.08033242594</value>
+        </mag>
+        <waveformID locationCode="" networkCode="BW" stationCode="UH1"></waveformID>
+      </stationMagnitude>
+      <stationMagnitude publicID="smi:de.erdbeben-in-bayern/station_magnitude/20100622214704/2">
+        <originID>smi:de.erdbeben-in-bayern/origin/20100622214704/1</originID>
+        <mag>
+          <value>2.20906300614</value>
+        </mag>
+        <waveformID locationCode="" networkCode="BW" stationCode="UH2"></waveformID>
+      </stationMagnitude>
+      <stationMagnitude publicID="smi:de.erdbeben-in-bayern/station_magnitude/20100622214704/3">
+        <originID>smi:de.erdbeben-in-bayern/origin/20100622214704/1</originID>
+        <mag>
+          <value>2.46282122834</value>
+        </mag>
+        <waveformID locationCode="" networkCode="BW" stationCode="UH3"></waveformID>
+      </stationMagnitude>
+      <stationMagnitude publicID="smi:de.erdbeben-in-bayern/station_magnitude/20100622214704/4">
+        <originID>smi:de.erdbeben-in-bayern/origin/20100622214704/1</originID>
+        <mag>
+          <value>1.59428175093</value>
+        </mag>
+        <waveformID locationCode="" networkCode="BW" stationCode="UH4"></waveformID>
+      </stationMagnitude>
+      <pick publicID="smi:de.erdbeben-in-bayern/pick/20100622214704/1">
+        <time>
+          <value>2010-05-27T16:24:33.315000Z</value>
+          <uncertainty>0.01</uncertainty>
+        </time>
+        <waveformID channelCode="EHZ" locationCode="" networkCode="BW" stationCode="UH1"></waveformID>
+        <phaseHint>P</phaseHint>
+        <polarity>negative</polarity>
+      </pick>
+      <pick publicID="smi:de.erdbeben-in-bayern/pick/20100622214704/2">
+        <time>
+          <value>2010-05-27T16:24:34.710000Z</value>
+          <uncertainty>0.055</uncertainty>
+        </time>
+        <waveformID channelCode="EHN" locationCode="" networkCode="BW" stationCode="UH1"></waveformID>
+        <phaseHint>S</phaseHint>
+      </pick>
+      <pick publicID="smi:de.erdbeben-in-bayern/pick/20100622214704/3">
+        <time>
+          <value>2010-05-27T16:24:33.219999Z</value>
+          <uncertainty>0.01</uncertainty>
+        </time>
+        <waveformID channelCode="EHZ" locationCode="" networkCode="BW" stationCode="UH2"></waveformID>
+        <phaseHint>P</phaseHint>
+        <polarity>positive</polarity>
+      </pick>
+      <pick publicID="smi:de.erdbeben-in-bayern/pick/20100622214704/4">
+        <time>
+          <value>2010-05-27T16:24:34.514999Z</value>
+          <uncertainty>0.03</uncertainty>
+        </time>
+        <waveformID channelCode="EHN" locationCode="" networkCode="BW" stationCode="UH2"></waveformID>
+        <phaseHint>S</phaseHint>
+      </pick>
+      <pick publicID="smi:de.erdbeben-in-bayern/pick/20100622214704/5">
+        <time>
+          <value>2010-05-27T16:24:33.109999Z</value>
+          <uncertainty>0.01</uncertainty>
+        </time>
+        <waveformID channelCode="EHZ" locationCode="" networkCode="BW" stationCode="UH3"></waveformID>
+        <phaseHint>P</phaseHint>
+      </pick>
+      <pick publicID="smi:de.erdbeben-in-bayern/pick/20100622214704/6">
+        <time>
+          <value>2010-05-27T16:24:34.264999Z</value>
+          <uncertainty>0.03</uncertainty>
+        </time>
+        <waveformID channelCode="EHN" locationCode="" networkCode="BW" stationCode="UH3"></waveformID>
+        <phaseHint>S</phaseHint>
+      </pick>
+      <pick publicID="smi:de.erdbeben-in-bayern/pick/20100622214704/7">
+        <time>
+          <value>2010-05-27T16:24:34.099999Z</value>
+          <uncertainty>0.015</uncertainty>
+        </time>
+        <waveformID channelCode="EHZ" locationCode="" networkCode="BW" stationCode="UH4"></waveformID>
+        <phaseHint>P</phaseHint>
+      </pick>
+      <pick publicID="smi:de.erdbeben-in-bayern/pick/20100622214704/8">
+        <time>
+          <value>2010-05-27T16:24:36.114999Z</value>
+          <uncertainty>0.04</uncertainty>
+        </time>
+        <waveformID channelCode="EHN" locationCode="" networkCode="BW" stationCode="UH4"></waveformID>
+        <phaseHint>S</phaseHint>
+      </pick>
+    </event>
+  </eventParameters>
+</ns0:quakeml>
