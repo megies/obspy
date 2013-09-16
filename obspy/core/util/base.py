@@ -580,7 +580,7 @@ class ImageComparison(NamedTemporaryFile):
             warnings.warn(msg)
             return
         if not os.path.exists(directory):
-            os.mkdir(directory)
+            os.makedirs(directory)
         if os.path.isfile(self.diff_filename):
             diff_filename_new = \
                 "-failed-diff.".join(self.image_name.rsplit(".", 1))
