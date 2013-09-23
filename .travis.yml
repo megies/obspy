@@ -9,7 +9,7 @@ before_install:
   - pip install https://github.com/yarikoptic/coveralls-python/archive/master.zip
   - pip install geographiclib
   - pip install --use-mirrors matplotlib==1.3.0
-  - git config --global core.symlinks true
+  - git config --list
 install:
   - git remote add obspy git://github.com/obspy/obspy.git
   - git fetch obspy --tags
@@ -20,7 +20,6 @@ install:
   - git status
 script:
   - MODULELIST=`python -c "from obspy.core.util import DEFAULT_MODULES as MODULES; print 'obspy.' + ',obspy.'.join(MODULES)"`
-  - coverage run --source=$MODULELIST -m obspy.core.scripts.runtests -n travis-ci -r --keep-images
 after_success:
   - coveralls
 notifications:
