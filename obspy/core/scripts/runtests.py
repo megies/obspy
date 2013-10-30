@@ -150,7 +150,7 @@ def _getSuites(verbosity=1, names=[]):
         suite = []
         if name in ALL_MODULES:
             # Search for short cuts in tests
-            test = 'obspy.%s.tests.suite' % name
+            test = 'obspy.%s.tests.suiteXXX' % name
         else:
             # If no short cuts names variable = test variable
             test = name
