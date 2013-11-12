@@ -6,6 +6,7 @@ virtualenv:
   system_site_packages: true
 before_install:
   - lsb_release -a # get info on the operating system
+  - sudo apt-get update
   - sudo apt-get install -qq gfortran
   # numpy is installed anyway, even on py!=2.7 where system site-packages are never available. keep it here for completeness
   - sudo apt-get install -qq python-numpy
