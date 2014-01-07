@@ -66,7 +66,7 @@ class Client(object):
     1 Trace(s) in Stream:
     IU.ANMO.00.BHZ | 2010-02-27T06:30:00.019538Z - ... | 20.0 Hz, 401 samples
     """
-    def __init__(self, base_url="http://www.iris.edu/ws",
+    def __init__(self, base_url="http://service.iris.edu/irisws",
                  user="", password="", timeout=20, debug=False,
                  user_agent=DEFAULT_USER_AGENT):
         """
@@ -107,6 +107,7 @@ class Client(object):
             options += urllib.urlencode(params)
         if options:
             remoteaddr = "%s?%s" % (remoteaddr, options)
+        remoteaddr = remoteaddr.replace("/query", "/1/query", 1)
         if self.debug:
             print('\nRequesting %s' % (remoteaddr))
         req = urllib2.Request(url=remoteaddr, data=data, headers=headers)
