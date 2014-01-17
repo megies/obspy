@@ -2074,7 +2074,7 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
 
     def remove_response(self, output="VEL", water_level=60, pre_filt=None,
                         zero_mean=True, taper=True, taper_fraction=0.05,
-                        **kwargs):
+                        nfft_pow2=False, **kwargs):
         """
         Deconvolve instrument response.
 
@@ -2184,10 +2184,14 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
         # evalresp scales directly with nfft, therefore taking the next power
         # of two has a greater negative performance impact than the slow down
         # of a not power of two in the FFT
-        if npts & 0x1:  # check if uneven
-            nfft = 2 * (npts + 1)
+        if nfft_pow2:
+            from obspy.signal.util import nextpow2
+            nfft = nextpow2(2 * npts)
         else:
-            nfft = 2 * npts
+            if npts & 0x1:  # check if uneven
+                nfft = 2 * (npts + 1)
+            else:
+                nfft = 2 * npts
         # Transform data to Frequency domain
         data = np.fft.rfft(data, n=nfft)
         # calculate and apply frequency response,
