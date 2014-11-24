@@ -20,7 +20,7 @@ do
 done
 
 
-DEBVERSION=1
+DEBVERSION=3
 DATE=`date +"%a, %d %b %Y %H:%M:%S %z"`
 
 # Setting PATH to correct python distribution, avoid to use virtualenv
@@ -62,15 +62,8 @@ wq
 EOL
 # get version number from the tag, the debian version
 # has to be increased manually if necessary.
-VERSION=`python -c "\
-import sys
-import os
-UTIL_PATH = os.path.abspath(os.path.join('$GITDIR', 'obspy', 'core', 'util'))
-sys.path.insert(0, UTIL_PATH)
-from version import get_git_version
-print get_git_version()"`
 # our package is not really dirty, just minor changes for packaging applied
-VERSION=${VERSION//-dirty/}
+VERSION="0.9.2"
 VERSION_COMPLETE=${VERSION}-${DEBVERSION}~${CODENAME}
 # the commented code shows how to update the changelog
 # information, however we do not do it as it hard to
