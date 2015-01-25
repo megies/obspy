@@ -139,6 +139,9 @@ class Parser(object):
                  channel["latitude"], channel["longitude"])
         return ret_str.strip()
 
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))
+
     @map_example_filename("data")
     def read(self, data):
         """
@@ -284,7 +287,7 @@ class Parser(object):
                     fn = filename.split('.xml')[0]
                     fn = "%s.%s.xml" % (filename, UTCDateTime(key).timestamp)
                 else:
-                    # current meta data - leave original filename
+                    # current meta data - leave original file name
                     fn = filename
                 with open(fn, 'wb') as f:
                     f.write(value)
@@ -371,7 +374,7 @@ class Parser(object):
                         # Send the blockettes to the parser and append to list.
                         self._getRESPString(resp, blockettes, cur_station)
                         resp_list.append([filename, resp])
-                    # Create the filename.
+                    # Create the file name.
                     filename = 'RESP.%s.%s.%s.%s' \
                         % (cur_network, cur_station, cur_location, cur_channel)
                     # Create new BytesIO and list.
@@ -414,7 +417,7 @@ class Parser(object):
         Selects all blockettes related to given SEED id and datetime.
         """
         old_format = self._format
-        # parse blockettes if not SEED. Needed foe XSEED to be intialized.
+        # parse blockettes if not SEED. Needed for XSEED to be initialized.
         # XXX: Should potentially be fixed at some point.
         if self._format != 'SEED':
             self.__init__(self.getSEED())

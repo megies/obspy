@@ -18,20 +18,20 @@ with standard_library.hooks():
     import queue
     import urllib.parse
     import urllib.request
+    from collections import OrderedDict
 
 import copy
 import obspy
 from obspy import UTCDateTime, read_inventory
-from obspy.core.util.obspy_types import OrderedDict
 from obspy.fdsn.wadl_parser import WADLParser
 from obspy.fdsn.header import DEFAULT_USER_AGENT, \
     URL_MAPPINGS, DEFAULT_PARAMETERS, PARAMETER_ALIASES, \
     WADL_PARAMETERS_NOT_TO_BE_PARSED, FDSNException, FDSNWS
-from obspy.core.util.misc import wrap_long_string
 
 import collections
 import io
 from lxml import etree
+import textwrap
 import threading
 import warnings
 import os
@@ -1048,6 +1048,9 @@ class Client(object):
                                          services=services_string))
         return ret
 
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))
+
     def help(self, service=None):
         """
         Print a more extensive help for a given service.
@@ -1113,8 +1116,10 @@ class Client(object):
                 if req_def:
                     req_def = ", %s" % req_def
                 if param["doc_title"]:
-                    doc_title = wrap_long_string(param["doc_title"],
-                                                 prefix="        ")
+                    doc_title = textwrap.fill(param["doc_title"], width=79,
+                                              initial_indent="        ",
+                                              subsequent_indent="        ",
+                                              break_long_words=False)
                     doc_title = "\n" + doc_title
                 else:
                     doc_title = ""
@@ -1466,13 +1471,11 @@ def download_url(url, timeout=10, headers={}, debug=False,
             msg = "HTTP error %i, reason %s, while downloading '%s': %s" % \
                   (e.code, str(e.reason), url, e.read())
             print(msg)
-            return e.code, None
-        raise
+        return e.code, None
     except Exception as e:
         if debug is True:
             print("Error while downloading: %s" % url)
-            return None, None
-        raise
+        return None, None
 
     code = url_obj.getcode()
     if return_string is False:

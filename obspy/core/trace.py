@@ -198,6 +198,9 @@ class Stats(AttribDict):
                           'npts', 'calib']
         return self._pretty_str(priorized_keys)
 
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))
+
 
 def _add_processing_info(func):
     """
@@ -388,6 +391,9 @@ class Trace(object):
         if np.ma.count_masked(self.data):
             out += ' (masked)'
         return trace_id + out % (self.stats)
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))
 
     def __len__(self):
         """
@@ -870,10 +876,8 @@ class Trace(object):
         :type filename: str
         :param filename: The name of the file to write.
         :type format: str
-        :param format: The format to write must be specified. One of
-            ``"MSEED"``, ``"GSE2"``, ``"SAC"``, ``"SACXY"``, ``"Q"``,
-            ``"SH_ASC"``, ``"SEGY"``, ``"SU"``, ``"WAV"``, ``"PICKLE"``. See
-            :meth:`obspy.core.stream.Stream.write` method for all possible
+        :param format: The format to write must be specified. See
+            :meth:`obspy.core.stream.Stream.write` method for possible
             formats.
         :param kwargs: Additional keyword arguments passed to the underlying
             waveform writer method.
@@ -997,7 +1001,7 @@ class Trace(object):
                 gap = createEmptyDataChunk(delta, self.data.dtype, fill_value)
             except ValueError:
                 # createEmptyDataChunk returns negative ValueError ?? for
-                # too large number of pointes, e.g. 189336539799
+                # too large number of points, e.g. 189336539799
                 raise Exception("Time offset between starttime and " +
                                 "trace.starttime too large")
             self.data = np.ma.concatenate((self.data, gap))
@@ -1136,7 +1140,7 @@ class Trace(object):
             # Check if the endtime fits the starttime, npts and sampling_rate.
             if self.stats.endtime != self.stats.starttime + \
                     (self.stats.npts - 1) / float(self.stats.sampling_rate):
-                msg = "Endtime is not the time of the last sample."
+                msg = "End time is not the time of the last sample."
                 raise Exception(msg)
         elif self.stats.npts not in [0, 1]:
             msg = "Data size should be 0, but is %d"
@@ -1505,10 +1509,10 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
         from scipy.signal import get_window
         from scipy.fftpack import rfft, irfft
         factor = self.stats.sampling_rate / float(sampling_rate)
-        # check if endtime changes and this is not explicitly allowed
+        # check if end time changes and this is not explicitly allowed
         if strict_length:
             if len(self.data) % factor != 0.0:
-                msg = "Endtime of trace would change and strict_length=True."
+                msg = "End time of trace would change and strict_length=True."
                 raise ValueError(msg)
         # do automatic lowpass filtering
         if not no_filter:
@@ -1521,8 +1525,11 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
             freq = self.stats.sampling_rate * 0.5 / float(factor)
             self.filter('lowpassCheby2', freq=freq, maxorder=12)
 
+        orig_dtype = self.data.dtype
+        new_dtype = np.float32 if orig_dtype.itemsize == 4 else np.float64
+
         # resample in the frequency domain
-        X = rfft(self.data)
+        X = rfft(np.require(self.data, dtype=new_dtype))
         X = np.insert(X, 1, 0)
         if self.stats.npts % 2 == 0:
             X = np.append(X, [0])
@@ -1559,6 +1566,7 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
         if num % 2 == 0:
             Y = np.delete(Y, -1)
         self.data = irfft(Y) * (float(num) / float(self.stats.npts))
+        self.data = np.require(self.data, dtype=orig_dtype)
         self.stats.sampling_rate = sampling_rate
 
         return self
@@ -1625,9 +1633,9 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
         >>> tr.data
         array([0, 4, 8])
         """
-        # check if endtime changes and this is not explicitly allowed
+        # check if end time changes and this is not explicitly allowed
         if strict_length and len(self.data) % factor:
-            msg = "Endtime of trace would change and strict_length=True."
+            msg = "End time of trace would change and strict_length=True."
             raise ValueError(msg)
 
         # do automatic lowpass filtering
@@ -1728,14 +1736,20 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
 
     @skipIfNoData
     @_add_processing_info
-    def integrate(self, type='cumtrapz', **options):
+    def integrate(self, method="cumtrapz", **options):
         """
-        Method to integrate the trace with respect to time.
+        Integrate the trace with respect to time.
 
-        :type type: str, optional
-        :param type: Method to use for integration. Defaults to
-            ``'cumtrapz'``. See the `Supported Methods`_ section below for
-            further details.
+        .. rubric:: _`Supported Methods`
+
+        ``'cumtrapz'``
+            First order integration of data using the trapezoidal rule. Uses
+            :func:`obspy.signal.differentiate_and_integrate.integrate_cumtrapz`
+
+        ``'spline'``
+            Integrates by generating an interpolating spline and integrating
+            that. Uses
+            :func:`obspy.signal.differentiate_and_integrate.integrate_spline`
 
         .. note::
 
@@ -1745,39 +1759,18 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
             a copy of your trace object.
             This also makes an entry with information on the applied processing
             in ``stats.processing`` of this trace.
-
-        .. rubric:: _`Supported Methods`
-
-        ``'cumtrapz'``
-            Trapezoidal rule to cumulatively compute integral (uses
-            :func:`scipy.integrate.cumtrapz`). Result has one sample less then
-            the input!
-
-        ``'trapz'``
-            Trapezoidal rule to compute integral from samples (uses
-            :func:`scipy.integrate.trapz`).
-
-        ``'simps'``
-            Simpson's rule to compute integral from samples (uses
-            :func:`scipy.integrate.simps`).
-
-        ``'romb'``
-            Romberg Integration to compute integral from (2**k + 1)
-            evenly-spaced samples. (uses :func:`scipy.integrate.romb`).
         """
-        type = type.lower()
+        method = method.lower()
         # retrieve function call from entry points
-        func = _getFunctionFromEntryPoint('integrate', type)
-        # handle function specific settings
-        if func.__module__.startswith('scipy'):
-            # SciPy needs to set dx keyword if not given in options
-            if 'dx' not in options:
-                options['dx'] = self.stats.delta
-            args = [self.data]
-        else:
-            args = [self.data, self.stats.delta]
-        # integrating
-        self.data = func(*args, **options)
+        func = _getFunctionFromEntryPoint('integrate', method)
+
+        if "type" in options:
+            warnings.warn("The 'type' argument is no longer supported. It "
+                          "will be ignored. Use the 'method' argument.",
+                          DeprecationWarning)
+            del options["type"]
+
+        self.data = func(data=self.data, dx=self.stats.delta, **options)
         return self
 
     @skipIfNoData
@@ -2281,7 +2274,7 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
 
         Uses the :class:`obspy.station.response.Response` object attached as
         :class:`Trace`.stats.response to deconvolve the instrument response
-        from the trace's timeseries data. Raises an exception if the response
+        from the trace's time series data. Raises an exception if the response
         is not present. Use e.g. :meth:`Trace.attach_response` to attach
         response to trace providing :class:`obspy.station.inventory.Inventory`
         data.

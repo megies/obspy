@@ -8,10 +8,8 @@ from obspy import UTCDateTime, Stream, Trace, read
 from obspy.core.compatibility import mock
 from obspy.core.stream import writePickle, readPickle, isPickle
 from obspy.core.util.attribdict import AttribDict
-from obspy.core.util.base import (NamedTemporaryFile, getMatplotlibVersion,
-                                  getSciPyVersion)
+from obspy.core.util.base import (NamedTemporaryFile, getSciPyVersion)
 from obspy.xseed import Parser
-from obspy.core.util.decorator import skipIf
 import numpy as np
 import os
 import pickle
@@ -19,7 +17,6 @@ import unittest
 import warnings
 
 
-MATPLOTLIB_VERSION = getMatplotlibVersion()
 SCIPY_VERSION = getSciPyVersion()
 
 
@@ -997,7 +994,7 @@ class StreamTestCase(unittest.TestCase):
     def test_bugfixMergeDropTraceIfAlreadyContained(self):
         """
         Trace data already existing in another trace and ending on the same
-        endtime was not correctly merged until now.
+        end time was not correctly merged until now.
         """
         trace1 = Trace(data=np.empty(10))
         trace2 = Trace(data=np.empty(2))
@@ -1062,7 +1059,7 @@ class StreamTestCase(unittest.TestCase):
         self.assertEqual(len(st), 1)
         self.assertEqual(st[0].stats.delta, 60.0)
         self.assertEqual(st[0].stats.starttime, trace1.stats.starttime)
-        # endtime of last trace
+        # end time of last trace
         endtime = trace1.stats.starttime + \
             (4 * 1440 - 1) * trace1.stats.delta
         self.assertEqual(st[0].stats.endtime, endtime)
@@ -1495,7 +1492,7 @@ class StreamTestCase(unittest.TestCase):
 
     def test_trimConsistentStartEndtime(self):
         """
-        Test case for #127. It ensures that the sample start and entimes
+        Test case for #127. It ensures that the sample start and end times
         stay consistent after trimming.
         """
         data = np.zeros(10)
@@ -1516,7 +1513,7 @@ class StreamTestCase(unittest.TestCase):
 
     def test_trimConsistentStartEndtimePad(self):
         """
-        Test case for #127. It ensures that the sample start and entimes
+        Test case for #127. It ensures that the sample start and end times
         stay consistent after trimming. Padded version.
         """
         data = np.zeros(10)
@@ -1697,7 +1694,7 @@ class StreamTestCase(unittest.TestCase):
         tr2 = read(dtype='i8')[0]
         self.assertEqual(tr2.data.dtype, np.int64)
         self.assertEqual(tr, tr2)
-        # start-/endtime
+        # start/end time
         tr2 = read(starttime=tr.stats.starttime + 1,
                    endtime=tr.stats.endtime - 2)[0]
         self.assertEqual(tr2.stats.starttime, tr.stats.starttime + 1)
@@ -1710,7 +1707,7 @@ class StreamTestCase(unittest.TestCase):
         # dtype
         tr = read('http://examples.obspy.org/test.sac', dtype=np.int32)[0]
         self.assertEqual(tr.data.dtype, np.int32)
-        # start-/endtime
+        # start/end time
         tr2 = read('http://examples.obspy.org/test.sac',
                    starttime=tr.stats.starttime + 1,
                    endtime=tr.stats.endtime - 2)[0]
@@ -1724,7 +1721,7 @@ class StreamTestCase(unittest.TestCase):
         # dtype
         tr = read('/path/to/slist_float.ascii', dtype=np.int32)[0]
         self.assertEqual(tr.data.dtype, np.int32)
-        # start-/endtime
+        # start/end time
         tr2 = read('/path/to/slist_float.ascii',
                    starttime=tr.stats.starttime + 0.025,
                    endtime=tr.stats.endtime - 0.05)[0]
@@ -1745,7 +1742,7 @@ class StreamTestCase(unittest.TestCase):
         filename = path + os.sep + 'data' + os.sep + 'NOTEXISTING.*'
         self.assertRaises(Exception, read, filename)
 
-        # argument headonly should not be used with starttime, endtime or dtype
+        # argument headonly should not be used with start or end time or dtype
         with warnings.catch_warnings(record=True):
             # will usually warn only but here we force to raise an exception
             warnings.simplefilter('error', UserWarning)
@@ -1851,14 +1848,12 @@ class StreamTestCase(unittest.TestCase):
         st[1].stats.starttime += 1
         self.assertRaises(ValueError, st.rotate, method='ZNE->LQT')
 
-    @skipIf(not MATPLOTLIB_VERSION, 'matplotlib is not installed')
     def test_plot(self):
         """
         Tests plot method if matplotlib is installed
         """
         self.mseed_stream.plot(show=False)
 
-    @skipIf(not MATPLOTLIB_VERSION, 'matplotlib is not installed')
     def test_spectrogram(self):
         """
         Tests spectrogram method if matplotlib is installed
@@ -2155,20 +2150,6 @@ class StreamTestCase(unittest.TestCase):
         for tr in st1:
             tr.integrate()
         st2.integrate()
-        self.assertEqual(st1, st2)
-
-    @skipIf(SCIPY_VERSION < [0, 11, 0], 'SciPy is too old')
-    def test_integrate_args(self):
-        """
-        Tests that the integrate command is called for all traces of a Stream
-        object and options are passed along correctly.
-        """
-        st1 = read()
-        st2 = read()
-
-        for tr in st1:
-            tr.integrate(type='cumtrapz', initial=0)
-        st2.integrate(type='cumtrapz', initial=0)
         self.assertEqual(st1, st2)
 
 
