@@ -421,7 +421,8 @@ class TauEncoder(json.JSONEncoder):
         converted into a dict holding dtype, shape and the data base64 encoded
         """
         if isinstance(obj, np.ndarray):
-            obj = np.require(obj, requirements=['C_CONTIGUOUS'])
+            obj = obj.copy()
+            #obj = np.require(obj, requirements=['C_CONTIGUOUS', 'F_CONTIGUOUS'])
             # handle array of TauBranch objects
             if obj.flatten()[0].__class__ == TauBranch:
                 __ndarray_list__ = [_dumps(x) for x in obj.flatten()]
@@ -431,7 +432,10 @@ class TauEncoder(json.JSONEncoder):
                             shape=obj.shape)
             # handle other arrays (e.g. int, float)
             else:
-                data_b64 = base64.b64encode(obj.data)
+                try:
+                    data_b64 = base64.b64encode(obj.data)
+                except:
+                        from IPython.core.debugger import Tracer; Tracer(colors="Linux")()
                 return dict(__ndarray__=data_b64,
                             dtype=str(obj.dtype),
                             shape=obj.shape)
