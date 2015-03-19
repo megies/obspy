@@ -49,6 +49,7 @@ fi
 echo "#### Working on $GITTARGET"
 cd $GITDIR
 git clean -fxd
+git fetch --all
 git checkout -- .
 if [ "$GITTARGET" != "master" ]
 then
@@ -88,6 +89,7 @@ from version import get_git_version
 print get_git_version()"`
 # our package is not really dirty, just minor changes for packaging applied
 VERSION=${VERSION//-dirty/}
+VERSION=0.10.0
 VERSION_COMPLETE=${VERSION}-${DEBVERSION}~${CODENAME}
 # the commented code shows how to update the changelog
 # information, however we do not do it as it hard to
