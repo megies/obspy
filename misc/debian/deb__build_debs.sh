@@ -20,7 +20,7 @@ do
 done
 
 
-DEBVERSION=1
+DEBVERSION=2
 DATE=`date +"%a, %d %b %Y %H:%M:%S %z"`
 
 # Setting PATH to correct python distribution, avoid to use virtualenv
@@ -89,6 +89,7 @@ from version import get_git_version
 version = get_git_version(dirty=False, append_remote_tracking_branch=False)
 print(version)"`
 # our package is not really dirty, just minor changes for packaging applied
+VERSION=0.10.1
 VERSION_COMPLETE=${VERSION}-${DEBVERSION}~${CODENAME}
 # the commented code shows how to update the changelog
 # information, however we do not do it as it hard to
