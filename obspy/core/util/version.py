@@ -143,35 +143,7 @@ def write_release_version(version):
 
 
 def get_git_version(abbrev=10, dirty=True, append_remote_tracking_branch=True):
-    # Read in the version that's currently in RELEASE-VERSION.
-    release_version = read_release_version()
-
-    # First try to get the current version using “git describe”.
-    version = call_git_describe(
-        abbrev, dirty=dirty,
-        append_remote_tracking_branch=append_remote_tracking_branch)
-
-    # If that doesn't work, fall back on the value that's in
-    # RELEASE-VERSION.
-    if version is None:
-        version = release_version
-
-    # If we still don't have anything, that's an error.
-    if version is None:
-        return '0.0.0+archive'
-
-    # pip uses its normalized version number (strict PEP440) instead of our
-    # original version number, so we bow to pip and use the normalized version
-    # number internally, too, to avoid discrepancies.
-    version = _normalize_version(version)
-
-    # If the current version is different from what's in the
-    # RELEASE-VERSION file, update the file to be current.
-    if version != release_version:
-        write_release_version(version)
-
-    # Finally, return the current version.
-    return version
+    return "0.10.1"
 
 
 def _normalize_version(version):
