@@ -20,7 +20,7 @@ do
 done
 
 
-DEBVERSION=3
+DEBVERSION=4
 DATE=`date +"%a, %d %b %Y %H:%M:%S %z"`
 
 # Setting PATH to correct python distribution, avoid to use virtualenv
