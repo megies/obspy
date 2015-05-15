@@ -88,6 +88,7 @@ sys.path.insert(0, UTIL_PATH)
 from version import get_git_version
 version = get_git_version(dirty=False, append_remote_tracking_branch=False)
 print(version)"`
+VERSION="0.10.2"
 # our package is not really dirty, just minor changes for packaging applied
 VERSION_COMPLETE=${VERSION}-${DEBVERSION}~${CODENAME}
 # the commented code shows how to update the changelog
