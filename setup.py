@@ -270,6 +270,7 @@ ENTRY_POINTS = {
         'CNV = obspy.io.cnv.core',
         'CMTSOLUTION = obspy.io.cmtsolution.core',
         'SHAPEFILE = obspy.io.shapefile.core',
+        'NIED = obspy.io.nied.core'
         ],
     'obspy.plugin.event.QUAKEML': [
         'isFormat = obspy.io.quakeml.core:_is_quakeml',
@@ -306,6 +307,10 @@ ENTRY_POINTS = {
         'isFormat = obspy.io.cmtsolution.core:_is_cmtsolution',
         'readFormat = obspy.io.cmtsolution.core:_read_cmtsolution',
         'writeFormat = obspy.io.cmtsolution.core:_write_cmtsolution'
+        ],
+    'obspy.plugin.event.NIED': [
+        'isFormat = obspy.io.nied.core:_is_nied_catalog',
+        'readFormat = obspy.io.nied.core:_read_nied_catalog',
         ],
     'obspy.plugin.event.SHAPEFILE': [
         'writeFormat = obspy.io.shapefile.core:_write_shapefile',
