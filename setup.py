@@ -58,6 +58,8 @@ SETUP_DIRECTORY = os.path.dirname(os.path.abspath(inspect.getfile(
     inspect.currentframe())))
 
 # Import the version string.
+# Any .py files that are used at install time must be registered in
+# obspy.core.tests.test_util_misc.UtilMiscTestCase.test_no_obspy_imports!
 UTIL_PATH = os.path.join(SETUP_DIRECTORY, "obspy", "core", "util")
 sys.path.insert(0, UTIL_PATH)
 from version import get_git_version  # @UnresolvedImport
@@ -103,6 +105,7 @@ INSTALL_REQUIRES = [
     'scipy>=0.9.0',
     'matplotlib>=1.1.0',
     'lxml',
+    'setuptools',
     'sqlalchemy']
 EXTRAS_REQUIRE = {
     'tests': ['flake8>=2', 'pyimgur'],
@@ -360,6 +363,7 @@ ENTRY_POINTS = {
         'interpolate_1d = obspy.signal.interpolation:interpolate_1d',
         'weighted_average_slopes = '
         'obspy.signal.interpolation:weighted_average_slopes',
+        'lanczos = obspy.signal.interpolation:lanczos_interpolation'
         ],
     'obspy.plugin.rotate': [
         'rotate_NE_RT = obspy.signal.rotate:rotate_NE_RT',

@@ -18,6 +18,8 @@ import fnmatch
 import textwrap
 import warnings
 
+from obspy.core.util.obspy_types import ObsPyException, ZeroSamplingRate
+
 from .station import Station
 from .util import BaseNode
 
@@ -340,7 +342,7 @@ class Network(BaseNode):
     def plot(self, projection='global', resolution='l',
              continent_fill_color='0.9', water_fill_color='1.0', marker="v",
              size=15**2, label=True, color='#b15928', time=None, show=True,
-             outfile=None, method=None, **kwargs):  # @UnusedVariable
+             outfile=None, method=None, fig=None, **kwargs):  # @UnusedVariable
         """
         Creates a preview map of all stations in current network object.
 
@@ -397,6 +399,16 @@ class Network(BaseNode):
             * ``None`` to use the best available library
 
             Defaults to ``None``.
+        :type fig: :class:`matplotlib.figure.Figure`
+        :param fig: Figure instance to reuse, returned from a previous
+            inventory/catalog plot call with `method=basemap`.
+            If a previous basemap plot is reused, any kwargs regarding the
+            basemap plot setup will be ignored (i.e.  `projection`,
+            `resolution`, `continent_fill_color`, `water_fill_color`). Note
+            that multiple plots using colorbars likely are problematic, but
+            e.g. one station plot (without colorbar) and one event plot (with
+            colorbar) together should work well.
+        :returns: Figure instance with the plot.
 
         .. rubric:: Example
 
@@ -552,10 +564,19 @@ class Network(BaseNode):
 
         for sta in matching.stations:
             for cha in sta.channels:
-                cha.plot(min_freq=min_freq, output=output, axes=(ax1, ax2),
-                         label=".".join((self.code, sta.code,
-                                         cha.location_code, cha.code)),
-                         unwrap_phase=unwrap_phase, show=False, outfile=None)
+                try:
+                    cha.plot(min_freq=min_freq, output=output, axes=(ax1, ax2),
+                             label=".".join((self.code, sta.code,
+                                             cha.location_code, cha.code)),
+                             unwrap_phase=unwrap_phase, show=False,
+                             outfile=None)
+                except ZeroSamplingRate:
+                    msg = ("Skipping plot of channel with zero "
+                           "sampling rate:\n%s")
+                    warnings.warn(msg % str(cha), UserWarning)
+                except ObsPyException as e:
+                    msg = "Skipping plot of channel (%s):\n%s"
+                    warnings.warn(msg % (str(e), str(cha)), UserWarning)
 
         # final adjustments to plot if we created the figure in here
         if not axes:

@@ -46,7 +46,7 @@ __version__ = _get_version_string(abbrev=10)
 from obspy.core.trace import Trace  # NOQA
 from obspy.core.stream import Stream, read
 from obspy.core.event import read_events, Catalog
-from obspy.core.inventory import read_inventory  # NOQA
+from obspy.core.inventory import read_inventory, Inventory  # NOQA
 
 
 __all__ = ["UTCDateTime", "Trace", "__version__", "Stream", "read",
@@ -109,6 +109,10 @@ class ObsPyRestructureMetaPathFinderAndLoader(object):
     Make sure to remove this once 0.11 has been released!
     """
     def find_module(self, fullname, path=None):
+        # Compatibility with namespace paths.
+        if hasattr(path, "_path"):
+            path = path._path
+
         if not path or not path[0].startswith(__path__[0]):
             return None
 
@@ -170,7 +174,8 @@ from obspy.core.util.base import make_format_plugin_table
 read.__doc__ = \
     read.__doc__ % make_format_plugin_table("waveform", "read", numspaces=4)
 read_events.__doc__ = \
-    read_events.__doc__ % make_format_plugin_table("event", "read", numspaces=4)
+    read_events.__doc__ % make_format_plugin_table("event", "read",
+                                                   numspaces=4)
 
 
 if PY2:

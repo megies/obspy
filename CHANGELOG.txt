@@ -19,6 +19,9 @@ master:
      (see #860)
    * Stream/Trace.slice() now has the optional `nearest_sample` argument from
      Stream/Trace.trim().
+   * Trace.remove_response() now has `plot` option to show/output a plot of all
+     individual steps of instrument response removal in frequency domain
+     (see #1116).
  - obspy.clients.neries:
    * Removed the dedicated client. Data can still be accessed by using the FDSN
      client.
@@ -27,29 +30,86 @@ master:
      argument to functions that plot maps to select between Basemap or Cartopy.
    * New default colormap for all plots. A backport of the new viridis colormap
      from matplotlib is available for those using older matplotlib releases.
- - obspy.io.mseed:
-   * Upgrade to libmseed 2.16
  - obspy.io.shapefile:
    * New module for ESRI shapefile write support (see #1066)
  - obspy.signal:
    * Switch to second-order sections for filters; backported from SciPy 0.16.0
      (see #1028)
+   * New Lanczos interpolation/resampling (see #1101)
+   * PPSD (see #931 and #1108):
+     - Algorithm for PSD computation was improved, especially affecting results
+       at long periods (for detailed discussion see #931 and #1108).
+     - Keywords `paz` and `parser` were removed in favor of new keyword
+       `metadata`. PPSD now accepts `metadata` in a much wider range
+       of formats:
+          * Inventory objects (e.g. from StationXML or from FDSN webservice)
+          * obspy.io.xseed Parser objects (e.g. from dataless SEED file)
+          * filename of a RESP file
+          * dictionary with poles and zeros information (like in
+            prior versions)
+       Most old codes should still work, issuing a deprecation warning, but
+       old code that specifies *both* `paz` and `parser` keywords will raise
+       an exception.
+     - Whenever possible (i.e. when using for `metadata` an Inventory,
+       a Parser or a RESP file), response calculation now takes into account
+       the full response (all stages) as opposed to only using the poles and
+       zeros response stage (as was done in previous versions when using a
+       Parser object). When using a poles and zeros dictionary response
+       calculation is unchanged (as no information on other stages is
+       available, of course).
+     - New save/load mechanism using numpy .npz binary format that circumvents
+       some problems with the old pickle mechanism:
+       `PPSD.save_npz()` and `PPSD.load_npz()`
+     - Change default colormap to new obspy default sequential colormap
+       (matplotlibs new viridis colormap). The old PQLX colormap is provided by
+       `obspy.imaging.cm.pqlx` and can be used with
+       `PPSD.plot(..., cmap=...)`.
+     - new option `PPSD.plot(..., cumulative=True)` for a cumulative plot of
+       the histogram, i.e. a non-exceedence percentage visualization, similar
+       to the `percentile` option.
 
 0.10.x:
+  - obspy.core:
+    * Fix reading of multiple catalog files using globs (see #1065).
+    * Fixed a bug when using
+      `Trace.remove_response(..., water_level=None)`.
+      With that setting that is supposed to not use any water level
+      stabilization in the inversion of the instrument response
+      spectrum actually the instrument response was never inverted and
+      thus instead of a deconvolution a convolution was performed
+      (see #1104).
+    * Fixing floating point precision/rounding issue with UTCDateTime when
+      initializing with floating point seconds, i.e. with microseconds,
+      that could lead to microseconds being off by 1 microsecond
+      (see #1096)
   - obspy.fdsn:
     * More detailed error messages on failing requests (see #1079)
   - obspy.mseed:
     * Blockette 100 is now only written for Traces that need it. Previously
       it was written or not for all Traces, depending on whether the last
       Trace needed it or not. (see #1069)
+    * Fixed a bug that prevented microsecond accuracy for times before 1970
+      (see #1102).
+    * Updated to libmseed 2.17.
   - obspy.signal:
     * Bug fixed within rotate.rotate2ZNE(). Additionally it can now also
       perform the inverse rotation (see #1061).
   - obspy.station:
+    * Plotting responses across multiple channels is more robust now in
+      presence of some strange channels (e.g. with zero sampling rate,
+      happens e.g. for state of health channels, see #1115)
     * ObsPy no longer assumes that the StationXML namespace is the default
       namespace (see #1060).
+    * Checking if a file is a StationXML file is less rigorous (and much
+      faster) now (not checking strict validity against xsd schema but
+      only looking for a FDSNStationXML root element, see #1114).
+      This means that `read_inventory()` without explicitly specified
+      format will correctly detect more files as StationXML that have very
+      slight breaches of the schema but still can be interpreted as
+      StationXML.
   - obspy.taup:
     * Calculating arrival times for surface waves now works (see #1055)
+    * Calculating arrivals for underside reflections now works (see #1089)
   - obspy.io.zmap
     * Add support for time values with sub-second precision (see #1093)
 

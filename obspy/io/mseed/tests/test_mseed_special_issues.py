@@ -21,6 +21,7 @@ from obspy import Stream, Trace, UTCDateTime, read
 from obspy.core.compatibility import from_buffer
 from obspy.core.util import NamedTemporaryFile
 from obspy.core.util.attribdict import AttribDict
+from obspy.core.util.deprecation_helpers import ObsPyDeprecationWarning
 from obspy.io.mseed import util
 from obspy.io.mseed.core import _read_mseed, _write_mseed
 from obspy.io.mseed.headers import clibmseed
@@ -271,11 +272,11 @@ class MSEEDSpecialIssueTestCase(unittest.TestCase):
         """
         timingqual = os.path.join(self.path, 'data', 'timingquality.mseed')
         with warnings.catch_warnings(record=True):
-            warnings.simplefilter('error', DeprecationWarning)
+            warnings.simplefilter('error', ObsPyDeprecationWarning)
             # This should not raise a warning.
             read(timingqual)
             # This should warn.
-            self.assertRaises(DeprecationWarning, read, timingqual,
+            self.assertRaises(ObsPyDeprecationWarning, read, timingqual,
                               quality=True)
 
     def test_readWithMissingBlockette010(self):
@@ -730,6 +731,34 @@ class MSEEDSpecialIssueTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(
             st[2].stats.sampling_rate,
             st2[2].stats.sampling_rate))
+
+    def test_microsecond_accuracy_reading_and_writing_before_1970(self):
+        """
+        Tests that reading and writing data with microsecond accuracy and
+        before 1970 works as expected.
+        """
+        # Test a couple of timestamps. Positive and negative ones.
+        timestamps = [123456.789123, -123456.789123, 1.123400, 1.123412,
+                      1.123449, 1.123450, 1.123499, -1.123400, -1.123412,
+                      -1.123449, -1.123450, -1.123451, -1.123499]
+
+        for timestamp in timestamps:
+            starttime = UTCDateTime(timestamp)
+            self.assertEqual(starttime.timestamp, timestamp)
+
+            tr = Trace(data=np.linspace(0, 100, 101))
+            tr.stats.starttime = starttime
+
+            with io.BytesIO() as fh:
+                tr.write(fh, format="mseed")
+                fh.seek(0, 0)
+                tr2 = read(fh)[0]
+
+            del tr2.stats.mseed
+            del tr2.stats._format
+
+            self.assertEqual(tr2.stats.starttime, starttime)
+            self.assertEqual(tr2, tr)
 
 
 def suite():

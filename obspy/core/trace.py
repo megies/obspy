@@ -20,6 +20,7 @@ import warnings
 from copy import copy, deepcopy
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from obspy.core import compatibility
 from obspy.core.utcdatetime import UTCDateTime
@@ -2171,18 +2172,20 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
     @raise_if_masked
     @_add_processing_info
     def interpolate(self, sampling_rate, method="weighted_average_slopes",
-                    starttime=None, npts=None):
+                    starttime=None, npts=None, time_shift=0.0,
+                    *args, **kwargs):
         """
         Interpolate the data using various interpolation techniques.
 
-        No filter, antialiasing, ... is applied so make sure the data is
-        suitable for the operation to be performed.
+        Be careful when downsampling data and make sure to apply an appropriate
+        anti-aliasing lowpass filter before interpolating in case it's
+        necessary.
 
         .. note::
 
             The :class:`~Trace` object has three different methods to change
             the sampling rate of its data: :meth:`~.resample`,
-            :meth:`~.decimate`, and :meth:`~.interpolate`
+            :meth:`~.decimate`, and :meth:`~.interpolate`.
 
             Make sure to choose the most appropriate one for the problem at
             hand.
@@ -2194,18 +2197,36 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
             original data, use :meth:`~.copy` to create a copy of your Trace
             object.
 
+        .. rubric:: _`Interpolation Methods:`
+
+        The chosen method is crucial and we will elaborate a bit about the
+        choices here:
+
+        * ``"lanczos"``: This offers the highest quality interpolation and
+          should be chosen whenever possible. It is only due to legacy
+          reasons that this is not the default method. The one downside it
+          has is that it can be fairly expensive. See the
+          :func:`~obspy.signal.interpolation.lanczos_interpolation` function
+          for more details.
+        * ``"weighted_average_slopes"``: This is the interpolation method used
+          by SAC. Refer to
+          :func:`~obspy.signal.interpolation.weighted_average_slopes` for
+          more details.
+        * ``"slinear"``, ``"quadratic"`` and ``"cubic"``: spline interpolation
+          of first, second or third order.
+        * ``"linear"``: Linear interpolation.
+        * ``"nearest"``: Nearest neighbour interpolation.
+        * ``"zero"``: Last encountered value interpolation.
+
+        .. rubric:: _`Parameters:`
 
         :param sampling_rate: The new sampling rate in ``Hz``.
-        :param method: The kind of interpolation to perform as a string (
+        :param method: The kind of interpolation to perform as a string. One of
             ``"linear"``, ``"nearest"``, ``"zero"``, ``"slinear"``,
-            ``"quadratic"``, ``"cubic"``, or ``"weighted_average_slopes"``
-            where ``"slinear"``, ``"quadratic"`` and ``"cubic"`` refer  to a
-            spline interpolation of first,  second or third order) or as an
-            integer specifying the order of the spline interpolator to use.
-            Defaults to ``"weighted_average_slopes"`` which is the
-            interpolation technique used by SAC. Refer to
-            :func:`~obspy.signal.interpolation.weighted_average_slopes` for
-            more details.
+            ``"quadratic"``, ``"cubic"``, ``"lanczos"``, or
+            ``"weighted_average_slopes"``. Alternatively an integer
+            specifying the order of the spline interpolator to use also works.
+            Defaults to ``"weighted_average_slopes"``.
         :type starttime: :class:`~obspy.core.utcdatetime.UTCDateTime` or int
         :param starttime: The start time (or timestamp) for the new
             interpolated stream. Will be set to current start time of the
@@ -2214,9 +2235,22 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
         :param npts: The new number of samples. Will be set to the best
             fitting  number to retain the current end time of the trace if
             not given.
+        :type time_shift: float
+        :param time_shift: Interpolation can also shift the data with
+            subsample accuracy. The time shift is always given in seconds. A
+            positive shift means the data is shifted towards the future,
+            e.g. a positive time delta. Please note that a time shift in
+            the Fourier domain is always more accurate than this. When using
+            Lanczos interpolation with large values of ``a`` and away from the
+            boundaries this is nonetheless pretty good.
+
+        .. rubric:: _`New in version 0.11:`
+
+        * New parameter ``time_shift``.
+        * New interpolation method ``lanczos``.
+
 
         .. rubric:: _`Usage Examples`
-
 
         >>> from obspy import read
         >>> tr = read()[0]
@@ -2251,32 +2285,44 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
             raise ValueError("The time step must be positive.")
         dt = 1.0 / sampling_rate
 
-        if isinstance(method, int) or method in ["linear", "nearest", "zero",
-                                                 "slinear", "quadratic",
-                                                 "cubic"]:
-            func = _get_function_from_entry_point('interpolate',
-                                                  'interpolate_1d')
-        else:
-            func = _get_function_from_entry_point('interpolate', method)
-        old_start = self.stats.starttime.timestamp
-        old_dt = self.stats.delta
+        # We just shift the old start time. The interpolation will take care
+        # of the rest.
+        if time_shift:
+            self.stats.starttime += time_shift
 
-        if starttime is not None:
-            try:
-                starttime = starttime.timestamp
-            except AttributeError:
-                pass
-        else:
-            starttime = self.stats.starttime.timestamp
+        try:
+            if isinstance(method, int) or \
+                    method in ["linear", "nearest", "zero", "slinear",
+                               "quadratic", "cubic"]:
+                func = _get_function_from_entry_point('interpolate',
+                                                      'interpolate_1d')
+            else:
+                func = _get_function_from_entry_point('interpolate', method)
+            old_start = self.stats.starttime.timestamp
+            old_dt = self.stats.delta
 
-        if npts is None:
-            npts = int(math.floor((self.stats.endtime.timestamp - starttime) /
-                                  dt)) + 1
-        self.data = np.atleast_1d(func(np.require(self.data, dtype=np.float64),
-                                       old_start, old_dt, starttime, dt, npts,
-                                       type=method))
-        self.stats.starttime = UTCDateTime(starttime)
-        self.stats.delta = dt
+            if starttime is not None:
+                try:
+                    starttime = starttime.timestamp
+                except AttributeError:
+                    pass
+            else:
+                starttime = self.stats.starttime.timestamp
+            endtime = self.stats.endtime.timestamp
+            if npts is None:
+                npts = int(math.floor((endtime - starttime) / dt)) + 1
+
+            self.data = np.atleast_1d(func(
+                np.require(self.data, dtype=np.float64), old_start, old_dt,
+                starttime, dt, npts, type=method, *args, **kwargs))
+            self.stats.starttime = UTCDateTime(starttime)
+            self.stats.delta = dt
+        except:
+            # Revert the start time change if something went wrong.
+            if time_shift:
+                self.stats.starttime -= time_shift
+            # re-raise last exception.
+            raise
 
         return self
 
@@ -2352,7 +2398,7 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
     @_add_processing_info
     def remove_response(self, output="VEL", water_level=60, pre_filt=None,
                         zero_mean=True, taper=True, taper_fraction=0.05,
-                        **kwargs):
+                        plot=False, **kwargs):
         """
         Deconvolve instrument response.
 
@@ -2418,6 +2464,33 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
             tr.remove_response()
             tr.plot()
 
+        Using the `plot` option it is possible to visualize the individual
+        steps during response removal in the frequency domain to check the
+        chosen `pre_filt` and `water_level` options to stabilize the
+        deconvolution of the inverted instrument response spectrum:
+
+        >>> from obspy import read, read_inventory
+        >>> st = read("/path/to/IU_ULN_00_LH1_2015-07-18T02.mseed")
+        >>> tr = st[0]
+        >>> inv = read_inventory("/path/to/IU_ULN_00_LH1.xml")
+        >>> tr.attach_response(inv)
+        >>> pre_filt = [0.001, 0.005, 45, 50]
+        >>> tr.remove_response(pre_filt=pre_filt, output="DISP",
+        ...                    water_level=60, plot=True)  # doctest: +SKIP
+        <...Trace object at 0x...>
+
+        .. plot::
+
+            from obspy import read, read_inventory
+            st = read("http://examples.obspy.org/IU_ULN_2015-07-18T02.mseed")
+            tr = st[0]
+            inv = read_inventory("http://examples.obspy.org/IU_ULN.xml")
+            tr.attach_response(inv)
+            pre_filt = [0.001, 0.005, 45, 50]
+            output = "DISP"
+            tr.remove_response(pre_filt=pre_filt, output=output,
+                               water_level=60, plot=True)
+
         :type output: str
         :param output: Output units. One of:
 
@@ -2444,6 +2517,16 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
             in time domain prior to deconvolution.
         :type taper_fraction: float
         :param taper_fraction: Taper fraction of cosine taper to use.
+        :type plot: bool or str
+        :param plot: If `True`, brings up a plot that illustrates how the
+            data are processed in the frequency domain in three steps. First by
+            `pre_filt` frequency domain tapering, then by inverting the
+            instrument response spectrum with or without `water_level` and
+            finally showing data with inverted instrument response multiplied
+            on it in frequency domain. It also shows the comparison of
+            raw/corrected data in time domain. If a `str` is provided then the
+            plot is saved to file (filename must have a valid image suffix
+            recognizable by matplotlib e.g. '.png').
         """
         from obspy.core.inventory import Response, PolynomialResponseStage
         from obspy.signal.invsim import (cosine_taper, cosine_sac_taper,
@@ -2491,6 +2574,62 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
         if taper:
             data *= cosine_taper(npts, taper_fraction,
                                  sactaper=True, halfcosine=False)
+
+        if plot:
+            color1 = "blue"
+            color2 = "red"
+            bbox = dict(boxstyle="round", fc="w", alpha=1, ec="w")
+            bbox1 = dict(boxstyle="round", fc="blue", alpha=0.15)
+            bbox2 = dict(boxstyle="round", fc="red", alpha=0.15)
+            fig = plt.figure(figsize=(14, 10))
+            fig.suptitle(str(self))
+            ax1 = fig.add_subplot(321)
+            ax1b = ax1.twinx()
+            ax2 = fig.add_subplot(323, sharex=ax1)
+            ax2b = ax2.twinx()
+            ax3 = fig.add_subplot(325, sharex=ax1)
+            ax3b = ax3.twinx()
+            ax4 = fig.add_subplot(322)
+            ax5 = fig.add_subplot(324, sharex=ax4)
+            ax6 = fig.add_subplot(326, sharex=ax4)
+            for ax_ in (ax1, ax2, ax3, ax4, ax5, ax6):
+                ax_.grid(zorder=-10)
+            ax1.text(0.05, 0.1, 'pre_filt: %s' % pre_filt,
+                     ha="left", va="bottom", transform=ax1.transAxes,
+                     fontsize="large", bbox=bbox, zorder=5)
+            ax1.set_ylabel("Data spectrum, raw", bbox=bbox1)
+            ax1b.set_ylabel("'pre_filt' taper fraction", bbox=bbox2)
+            evalresp_info = "\n".join(
+                ['output: %s' % output] +
+                ['%s: %s' % (key, value) for key, value in kwargs.items()])
+            ax2.text(0.05, 0.1, evalresp_info, ha="left",
+                     va="bottom", transform=ax2.transAxes,
+                     fontsize="large", zorder=5, bbox=bbox)
+            ax2.set_ylabel("Data spectrum,\n"
+                           "'pre_filt' applied", bbox=bbox1)
+            ax2b.set_ylabel("Instrument response", bbox=bbox2)
+            ax3.text(0.05, 0.1, 'water_level: %s' % water_level,
+                     ha="left", va="bottom", transform=ax3.transAxes,
+                     fontsize="large", zorder=5, bbox=bbox)
+            ax3.set_ylabel("Data spectrum,\nmultiplied with inverted\n"
+                           "instrument response", bbox=bbox1)
+            ax3b.set_ylabel("Inverted instrument response,\n"
+                            "water level applied", bbox=bbox2)
+            ax3.set_xlabel("Frequency [Hz]")
+            times = self.times()
+            ax4.plot(times, self.data, color="k")
+            ax4.set_ylabel("Raw")
+            ax4.yaxis.set_ticks_position("right")
+            ax4.yaxis.set_label_position("right")
+            ax5.plot(times, data, color="k")
+            ax5.set_ylabel("Raw, after time\ndomain pre-processing")
+            ax5.yaxis.set_ticks_position("right")
+            ax5.yaxis.set_label_position("right")
+            ax6.set_ylabel("Response removed")
+            ax6.set_xlabel("Time [s]")
+            ax6.yaxis.set_ticks_position("right")
+            ax6.yaxis.set_label_position("right")
+
         # smart calculation of nfft dodging large primes
         from obspy.signal.util import _npts2nfft
         nfft = _npts2nfft(npts)
@@ -2501,15 +2640,55 @@ seismometer_correction_simulation.html#using-a-resp-file>`_.
         freq_response, freqs = \
             self.stats.response.get_evalresp_response(self.stats.delta, nfft,
                                                       output=output, **kwargs)
-        if pre_filt:
-            data *= cosine_sac_taper(freqs, flimit=pre_filt)
-        if water_level is not None:
-            invert_spectrum(freq_response, water_level)
-        data *= freq_response
 
+        if plot:
+            ax1.loglog(freqs, np.abs(data), color=color1, zorder=9)
+
+        # frequency domain pre-filtering of data spectrum
+        # (apply cosine taper in frequency domain)
+        if pre_filt:
+            freq_domain_taper = cosine_sac_taper(freqs, flimit=pre_filt)
+            data *= freq_domain_taper
+
+        if plot:
+            try:
+                freq_domain_taper
+            except NameError:
+                freq_domain_taper = np.ones(len(freqs))
+            ax1b.semilogx(freqs, freq_domain_taper, color=color2, zorder=10)
+            ax1b.set_ylim(-0.05, 1.05)
+            ax2.loglog(freqs, np.abs(data), color=color1, zorder=9)
+            ax2b.loglog(freqs, np.abs(freq_response), color=color2, zorder=10)
+
+        if water_level is None:
+            # No water level used, so just directly invert the response.
+            # First entry is at zero frequency and value is zero, too.
+            # Just do not invert the first value (and set to 0 to make sure).
+            freq_response[0] = 0.0
+            freq_response[1:] = 1.0 / freq_response[1:]
+        else:
+            # Invert spectrum with specified water level.
+            invert_spectrum(freq_response, water_level)
+
+        data *= freq_response
         data[-1] = abs(data[-1]) + 0.0j
+
+        if plot:
+            ax3.loglog(freqs, np.abs(data), color=color1, zorder=9)
+            ax3b.loglog(freqs, np.abs(freq_response), color=color2, zorder=10)
+
         # transform data back into the time domain
         data = np.fft.irfft(data)[0:npts]
+
+        if plot:
+            ax6.plot(times, data, color="k")
+            plt.subplots_adjust(wspace=0.4)
+            if plot is True:
+                plt.show()
+            else:
+                plt.savefig(plot)
+                plt.close(fig)
+
         # assign processed data and store processing information
         self.data = data
         info = ":".join(["remove_response"] +
