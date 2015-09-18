@@ -40,6 +40,7 @@ The functionality is provided through the following packages:
    obspy.io.datamark
    obspy.io.gse2
    obspy.io.kinemetrics
+   obspy.io.knet
    obspy.io.mseed
    obspy.io.pdas
    obspy.io.sac
@@ -60,6 +61,7 @@ The functionality is provided through the following packages:
    obspy.io.cnv
    obspy.io.json
    obspy.io.ndk
+   obspy.io.nied
    obspy.io.nlloc
    obspy.io.pde
    obspy.io.shapefile
