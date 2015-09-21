@@ -338,6 +338,9 @@ def _event_type_class_factory(class_name, class_attributes=[],
 
             def get_value_repr(key):
                 repr_str = getattr(self, key).__repr__()
+                # Get rid of leading u's for unicode on Python 2.
+                if repr_str.startswith("u'") and repr_str.endswith("'"):
+                    repr_str = repr_str[1:]
                 # Print any associated errors.
                 error_key = key + "_errors"
                 if hasattr(self, error_key) and\
