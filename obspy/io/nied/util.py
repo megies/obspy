@@ -20,7 +20,7 @@ def gen_sc3_id(dt, numenc=6, sym="abcdefghijklmnopqrstuvwxyz"):
     dx = (((370 * 24) * 60) * 60) * 1000
     rng = 1
     tmp = rng
-    for i in xrange(numenc):
+    for i in range(numenc):
         rng *= numsym
     w = int(dx / rng)
     if w == 0:
@@ -31,7 +31,7 @@ def gen_sc3_id(dt, numenc=6, sym="abcdefghijklmnopqrstuvwxyz"):
     else:
         x = x * int(rng / dx)
     enc = ''
-    for i in xrange(numenc):
+    for i in range(numenc):
         d = int(x / numsym)
         r = x % numsym
         enc += sym[r]
