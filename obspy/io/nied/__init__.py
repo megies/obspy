@@ -1,6 +1,6 @@
 """
 obspy.io.nied - NIED's moment tensors TEXT format support for ObsPy
-================================================================
+===================================================================
 
 This module provides read support for the moment tensor files (TEXT format)
 provided by the National Research Institute for Earth Science and Disaster
@@ -28,8 +28,8 @@ The event will contain a couple of origins and magnitudes.
 >>> print(cat[0])  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
 Event:  2011-03-11T05:46:18.120000Z | +38.103, +142.861 | 9.0 ML
 <BLANKLINE>
-              resource_id: ResourceIdentifier(id="smi:local/nied/2011excpds/event")
-               event_type: u'earthquake'
+              resource_id: ResourceIdentifier(id="...")
+               event_type: 'earthquake'
         ---------
          focal_mechanisms: 1 Elements
                   origins: 2 Elements
