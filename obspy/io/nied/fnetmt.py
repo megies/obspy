@@ -97,7 +97,6 @@ def __is_fnetmt_catalog(buf):
             line = buf.readline()
             if not line:
                 return False
-            line = line.decode()
             # read at most 40 lines
             if cnt > 40:
                 return False
@@ -149,7 +148,7 @@ def __read_fnetmt_catalog(buf, **kwargs):
     # First read the headerlines containing the data request parameters
     headerlines = []
     while buf.tell() < size:
-        line = buf.readline().decode()
+        line = buf.readline()
         if line.find('Total Number') != -1:
             match = re.search(r'Total Number:\s+(\d+)\s+', line)
             if match:
@@ -165,7 +164,7 @@ def __read_fnetmt_catalog(buf, **kwargs):
         # If there is something, jump back to the beginning of the line and
         # read the next event.
         if line:
-            events.append(__read_single_fnetmt_entry(line.decode()))
+            events.append(__read_single_fnetmt_entry(line))
 
     # Consistency check
     if len(events) != nevents:

@@ -72,7 +72,7 @@ def __is_knet_ascii(buf):
     :param buf: File to read.
     :type buf: Open file or open file like object.
     """
-    first_string = buf.read(11).decode()
+    first_string = buf.read(11)
     # File has less than 11 characters
     if len(first_string) != 11:
         return False
@@ -273,7 +273,7 @@ def __read_knet_ascii(buf, **kwargs):
     # First read the headerlines
     headerlines = []
     while buf.tell() < size:
-        line = buf.readline().decode()
+        line = buf.readline()
         headerlines.append(line)
         if line.startswith('Memo'):
             hdrdict = _read_knet_hdr(headerlines, **kwargs)
