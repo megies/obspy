@@ -31,7 +31,7 @@ from obspy.core.util.misc import to_int_or_zero
 
 
 # defining ObsPy modules currently used by runtests and the path function
-DEFAULT_MODULES = ['core', 'db', 'geodetics', 'imaging',
+DEFAULT_MODULES = ['clients.filesystem', 'core', 'db', 'geodetics', 'imaging',
                    'io.ah', 'io.ascii', 'io.cmtsolution', 'io.cnv', 'io.css',
                    'io.datamark', 'io.gse2', 'io.json', 'io.kinemetrics',
                    'io.mseed', 'io.ndk', 'io.nied', 'io.nlloc', 'io.pdas',
@@ -476,6 +476,7 @@ def make_format_plugin_table(group="waveform", method="read", numspaces=4,
     CMTSOLUTION  :mod:`...io.cmtsolution` :func:`..._write_cmtsolution`
     CNV       :mod:`...io.cnv`   :func:`obspy.io.cnv.core._write_cnv`
     JSON      :mod:`...io.json`  :func:`obspy.io.json.core._write_json`
+    KML       :mod:`obspy.io.kml` :func:`obspy.io.kml.core._write_kml`
     NLLOC_OBS :mod:`...io.nlloc` :func:`obspy.io.nlloc.core.write_nlloc_obs`
     QUAKEML :mod:`...io.quakeml` :func:`obspy.io.quakeml.core._write_quakeml`
     SHAPEFILE :mod:`obspy.io.shapefile`
