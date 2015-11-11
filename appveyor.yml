@@ -13,9 +13,6 @@ environment:
     - PYTHON_VERSION: "2.7"
       PYTHON_ARCH: "64"
 
-  OBSPY_IMGUR_CLIENTID:
-    secure: IFmM8yZtweFuupN5ClF3aQ==
-
 platform:
   - x64
 

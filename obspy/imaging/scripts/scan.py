@@ -41,11 +41,12 @@ import numpy as np
 
 from obspy import UTCDateTime, __version__, read
 from obspy.core.util.base import ENTRY_POINTS, _get_deprecated_argument_action
+from obspy.core.util.misc import MatplotlibBackend
 from obspy.imaging.util import ObsPyAutoDateFormatter, \
     decimal_seconds_format_date_first_tick
 
 
-def compressStartend(x, stop_iteration):
+def compressStartend(x, stop_iteration, merge_overlaps=False):
     """
     Compress 2-dimensional array of piecewise continuous start/end time pairs
     by merging overlapping and exactly fitting pieces into one.
@@ -54,6 +55,8 @@ def compressStartend(x, stop_iteration):
     The maximum number of iterations can be specified.
     """
     diffs = x[1:, 0] - x[:-1, 1]
+    if merge_overlaps:
+        diffs[diffs < 0] = 0
     inds = np.concatenate([(diffs <= 0), [False]])
     i = 0
     while any(inds):
@@ -72,6 +75,8 @@ def compressStartend(x, stop_iteration):
         inds_del = np.nonzero(inds_next)
         x = np.delete(x, inds_del, 0)
         diffs = x[1:, 0] - x[:-1, 1]
+        if merge_overlaps:
+            diffs[diffs < 0] = 0
         inds = np.concatenate([(diffs <= 0), [False]])
     return x
 
@@ -97,17 +102,17 @@ def parse_file_to_dict(data_dict, samp_int_dict, file, counter, format=None,
         sys.stdout.flush()
     for tr in stream:
         _id = tr.getId()
-        data_dict.setdefault(_id, [])
-        data_dict[_id].append([date2num(tr.stats.starttime),
-                               date2num(tr.stats.endtime)])
+        _samp_int_list = samp_int_dict.setdefault(_id, [])
         try:
-            samp_int_dict.setdefault(_id, [])
-            samp_int_dict[_id].\
+            _samp_int_list.\
                 append(1. / (24 * 3600 * tr.stats.sampling_rate))
         except ZeroDivisionError:
             if verbose or not quiet:
                 print("Skipping file with zero samlingrate: %s" % (file))
             return counter
+        _data_list = data_dict.setdefault(_id, [])
+        _data_list.append([date2num(tr.stats.starttime.datetime),
+                           date2num(tr.stats.endtime.datetime)])
     return (counter + 1)
 
 
@@ -231,6 +236,9 @@ def main(argv=None):
 
     args = parser.parse_args(argv)
 
+    if args.output is not None:
+        MatplotlibBackend.switch_backend("AGG", sloppy=False)
+
     # Print help and exit if no arguments are given
     if len(args.paths) == 0 and args.load is None:
         parser.error('No paths specified.')
@@ -241,9 +249,6 @@ def main(argv=None):
     else:
         parse_func = parse_file_to_dict
 
-    if args.output is not None:
-        import matplotlib
-        matplotlib.use("agg")
     from matplotlib.dates import date2num, num2date
     from matplotlib.ticker import FuncFormatter
     from matplotlib.patches import Rectangle
@@ -255,27 +260,26 @@ def main(argv=None):
 
     # Plot vertical lines if option 'event_times' was specified
     if args.event_time:
-        times = map(date2num, args.event_time)
+        times = [date2num(t.datetime) for t in args.event_time]
         for time in times:
             ax.axvline(time, color='k')
     # Deprecated version (don't plot twice)
     if args.event_times and not args.event_time:
         times = args.event_times.split(',')
-        times = map(UTCDateTime, times)
-        times = map(date2num, times)
+        times = [date2num(UTCDateTime(t).datetime) for t in times]
         for time in times:
             ax.axvline(time, color='k')
 
     if args.start_time:
-        args.start_time = date2num(args.start_time)
+        args.start_time = date2num(args.start_time.datetime)
     elif args.starttime:
         # Deprecated version
-        args.start_time = date2num(args.starttime)
+        args.start_time = date2num(args.starttime.datetime)
     if args.end_time:
-        args.end_time = date2num(args.end_time)
+        args.end_time = date2num(args.end_time.datetime)
     elif args.endtime:
         # Deprecated version
-        args.end_time = date2num(args.endtime)
+        args.end_time = date2num(args.endtime.datetime)
 
     # Generate dictionary containing nested lists of start and end times per
     # station
@@ -309,17 +313,25 @@ def main(argv=None):
         print('\n')
     for _i, _id in enumerate(ids):
         labels[_i] = ids[_i]
-        data[_id].sort()
+        # sort data list and sampling rate list
         startend = np.array(data[_id])
+        _samp_int = np.array(samp_int[_id])
+        indices = np.lexsort((startend[:, 1], startend[:, 0]))
+        startend = startend[indices]
+        _samp_int = _samp_int[indices]
         if len(startend) == 0:
             continue
         # restrict plotting of results to given start/end time
         if args.start_time:
-            startend = startend[startend[:, 1] > args.start_time]
+            indices = startend[:, 1] > args.start_time
+            startend = startend[indices]
+            _samp_int = _samp_int[indices]
         if len(startend) == 0:
             continue
-        if args.start_time:
-            startend = startend[startend[:, 0] < args.end_time]
+        if args.end_time:
+            indices = startend[:, 0] < args.end_time
+            startend = startend[indices]
+            _samp_int = _samp_int[indices]
         if len(startend) == 0:
             continue
         timerange = startend[:, 1].max() - startend[:, 0].min()
@@ -339,7 +351,7 @@ def main(argv=None):
         gapsum = diffs[diffs > 0].sum()
         perc = (timerange - gapsum) / timerange
         labels[_i] = labels[_i] + "\n%.1f%%" % (perc * 100)
-        gap_indices = diffs > 1.8 * np.array(samp_int[_id][:-1])
+        gap_indices = diffs > 1.8 * _samp_int[:-1]
         gap_indices = np.concatenate((gap_indices, [False]))
         if any(gap_indices):
             # don't handle last end time as start of gap

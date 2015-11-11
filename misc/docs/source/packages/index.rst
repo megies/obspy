@@ -60,6 +60,7 @@ The functionality is provided through the following packages:
    obspy.io.cmtsolution
    obspy.io.cnv
    obspy.io.json
+   obspy.io.kml
    obspy.io.ndk
    obspy.io.nied.fnetmt
    obspy.io.nlloc
@@ -75,8 +76,10 @@ The functionality is provided through the following packages:
    :nosignatures:
 
    obspy.io.css
+   obspy.io.kml
    obspy.io.sac.sacpz
    obspy.io.shapefile
+   obspy.io.stationtxt
    obspy.io.stationxml
 
 .. rubric:: Database or Web Service Access Clients
@@ -88,6 +91,7 @@ The functionality is provided through the following packages:
    obspy.clients.arclink
    obspy.clients.earthworm
    obspy.clients.fdsn
+   obspy.clients.filesystem
    obspy.clients.iris
    obspy.clients.neic
    obspy.clients.seedlink

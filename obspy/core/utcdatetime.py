@@ -1331,14 +1331,14 @@ class UTCDateTime(object):
         2008,275,00:30
         """
         if not compact:
-            if not self.time:
+            if self.time == datetime.time(0):
                 return "%04d,%03d" % (self.year, self.julday)
             return "%04d,%03d,%02d:%02d:%02d.%04d" % (self.year, self.julday,
                                                       self.hour, self.minute,
                                                       self.second,
                                                       self.microsecond // 100)
         temp = "%04d,%03d" % (self.year, self.julday)
-        if not self.time:
+        if self.time == datetime.time(0):
             return temp
         temp += ",%02d" % self.hour
         if self.microsecond:
@@ -1443,6 +1443,19 @@ class UTCDateTime(object):
         Returns current UTC datetime.
         """
         return UTCDateTime()
+
+    def _get_hours_after_midnight(self):
+        """
+        Calculate foating point hours after midnight.
+
+        >>> t = UTCDateTime("2015-09-27T03:16:12.123456Z")
+        >>> t._get_hours_after_midnight()
+        3.270034293333333
+        """
+        timedelta = (
+            self.datetime -
+            self.datetime.replace(hour=0, minute=0, second=0, microsecond=0))
+        return timedelta.total_seconds() / 3600.0
 
 
 if __name__ == '__main__':
