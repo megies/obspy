@@ -107,11 +107,6 @@ def get_start_and_end_time(file_or_file_object):
 def getTimingAndDataQuality(*args, **kwargs):
     return get_flags(activity_flags=False, io_flags=False, *args, **kwargs)
 
-@deprecated("'get_timing_and_data_quality' has been renamed to "
-            "'get_flags'. Use that instead.")
-def get_timing_and_data_quality(*args, **kwargs):
-    return get_flags(activity_flags=False, io_flags=False, *args, **kwargs)
-
 
 @deprecated("'get_timing_and_data_quality' has been renamed to "
             "'get_flags'. Use that instead.")
