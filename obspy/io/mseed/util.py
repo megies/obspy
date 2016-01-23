@@ -19,7 +19,6 @@ from struct import pack, unpack
 import numpy as np
 
 from obspy import UTCDateTime
-from obspy.core.util import score_at_percentile
 from obspy.core.util.decorator import deprecated
 from .headers import (ENCODINGS, ENDIAN, FIXED_HEADER_ACTIVITY_FLAGS,
                       FIXED_HEADER_DATA_QUAL_FLAGS,
@@ -311,7 +310,7 @@ def get_flags(file_or_file_object, starttime=None, endtime=None,
                     quality_count[key] += 1
 
         if timing_quality and "timing_quality" in rec_info:
-           tq.append(float(rec_info["timing_quality"]))
+            tq.append(float(rec_info["timing_quality"]))
 
         offset += rec_info["record_length"]
 
