@@ -80,14 +80,7 @@ wq
 EOL
 # get version number from the tag, the debian version
 # has to be increased manually if necessary.
-VERSION=`python -c "\
-import sys
-import os
-UTIL_PATH = os.path.abspath(os.path.join('$GITDIR', 'obspy', 'core', 'util'))
-sys.path.insert(0, UTIL_PATH)
-from version import get_git_version
-version = get_git_version(dirty=False, append_remote_tracking_branch=False)
-print(version)"`
+VERSION=1.0.0rc8
 # our package is not really dirty, just minor changes for packaging applied
 VERSION_COMPLETE=${VERSION}-${DEBVERSION}~${CODENAME}
 # the commented code shows how to update the changelog
