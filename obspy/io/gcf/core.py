@@ -15,7 +15,6 @@ def _is_gcf(filename):
     :rtype: bool
     :return: ``True`` if a GCF file.
     """
-    # Open file.
     try:
         with open(filename, 'rb') as f:
             libgcf.is_gcf(f)
@@ -43,7 +42,7 @@ def _read_gcf(filename, headonly=False, **kwargs):  # @UnusedVariable
     """
     traces = []
     with open(filename, 'rb') as f:
-        # reading multiple gse2 parts
+        # reading multiple gcf parts
         while True:
             try:
                 if headonly:
