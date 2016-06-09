@@ -1,49 +1,46 @@
-#!/usr/bin/python
 # reads Guralp Compressed Format (GCF) Files
 # By Ran Novitsky Nof @ BSL, 2016
 # ran.nof@gmail.com
 # Based on Guralp's GCF reference (GCF-RFC-GCFR, Issue C, 2011-01-05)
 # more details available from: http://www.guralp.com/apps/ok?doc=GCF_Intro
 # last access: June, 2016
-
-
 import numpy as np
 from obspy import UTCDateTime
 
 SPSD = {  # Table 3.1: special sample rates
-        157: 0.1,
-        161: 0.125,
-        162: 0.2,
-        164: 0.25,
-        167: 0.5,
-        171: 400,
-        174: 500,
-        176: 1000,
-        179: 2000,
-        181: 4000
-        }
+    157: 0.1,
+    161: 0.125,
+    162: 0.2,
+    164: 0.25,
+    167: 0.5,
+    171: 400,
+    174: 500,
+    176: 1000,
+    179: 2000,
+    181: 4000
+    }
 ToffsetsD = {  # Table 3.1: Time fractional offset denominator
-        171: 8.,
-        174: 2.,
-        176: 4.,
-        179: 8.,
-        181: 16.
-        }
+    171: 8.,
+    174: 2.,
+    176: 4.,
+    179: 8.,
+    181: 16.
+    }
 compressionD = {  # Table 3.2: format field to data type
-        1: '>i4',
-        2: '>i2',
-        4: '>i1'
-        }
+    1: '>i4',
+    2: '>i2',
+    4: '>i1'
+    }
 bitsD = {  # Table 3.2: format field to data bytes
-        1: 4,  # 32bits
-        2: 2,  # 16bits
-        4: 1   # 8bits
-        }
+    1: 4,  # 32bits
+    2: 2,  # 16bits
+    4: 1   # 8bits
+    }
 
 
 def is_gcf(f):
     'Test if file is GCF by reading at least 1 data block'
-    while 1:
+    while True:
         header, data = read(f)
         if len(data):
             break
