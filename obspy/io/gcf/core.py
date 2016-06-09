@@ -6,6 +6,7 @@ GCF bindings to ObsPy core module.
 from obspy import Stream, Trace
 from . import libgcf
 
+
 def _is_gcf(filename):
     """
     Checks whether a file is GCF or not.
@@ -23,8 +24,7 @@ def _is_gcf(filename):
     return True
 
 
-def _read_gcf(filename, headonly=False,
-               **kwargs):  # @UnusedVariable
+def _read_gcf(filename, headonly=False, **kwargs):  # @UnusedVariable
     """
     Reads a GCF file and returns a Stream object.
     only GCF files containing data records are supported.
@@ -48,10 +48,12 @@ def _read_gcf(filename, headonly=False,
             try:
                 if headonly:
                     header = libgcf.read_header(f)
-                    if header: traces.append(Trace(header=header))
+                    if header:
+                        traces.append(Trace(header=header))
                 else:
                     hd = libgcf.read(f)
-                    if hd: traces.append(Trace(header=hd[0], data=hd[1]))
+                    if hd:
+                        traces.append(Trace(header=hd[0], data=hd[1]))
             except EOFError:
                 break
     return Stream(traces=traces)
