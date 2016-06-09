@@ -1,8 +1,8 @@
 """
-obspy.io.gcf - Guralpe Compressed Format read support for ObsPy
+obspy.io.gcf - Güralp Compressed Format read support for ObsPy
 ==========================================================
 This module provides read support for GCF waveform data and header info.
-Most methods are based on info from Guralpe site
+Most methods are based on info from Güralp site
 http://geophysics.eas.gatech.edu/GTEQ/Scream4.4/GCF_Specification.htm
 
 :copyright:

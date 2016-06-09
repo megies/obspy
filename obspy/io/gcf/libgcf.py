@@ -2,7 +2,7 @@
 # reads Guralp Compressed Format (GCF) Files
 # By Ran Novitsky Nof @ BSL, 2016
 # ran.nof@gmail.com
-# Based on Guralpe's GCF reference (GCF-RFC-GCFR, Issue C, 2011-01-05)
+# Based on Guralp's GCF reference (GCF-RFC-GCFR, Issue C, 2011-01-05)
 # more details available from: http://www.guralp.com/apps/ok?doc=GCF_Intro
 # last access: June, 2016
 
