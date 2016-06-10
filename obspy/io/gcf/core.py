@@ -3,7 +3,9 @@
 GCF bindings to ObsPy core module.
 """
 
+
 from obspy import Stream, Trace
+
 from . import libgcf
 
 
@@ -15,6 +17,7 @@ def _is_gcf(filename):
     :rtype: bool
     :return: ``True`` if a GCF file.
     """
+    # Open file.
     try:
         with open(filename, 'rb') as f:
             libgcf.is_gcf(f)
@@ -34,6 +37,9 @@ def _read_gcf(filename, headonly=False, **kwargs):  # @UnusedVariable
     :param filename: GCF file to be read.
     :type headonly: bool, optional
     :param headonly: If True read only head of GCF file.
+    :type channel_prefix: str, optional
+    :param channel_prefix: Channel band and instrument codes.
+        Defaults to ``HH``.
     :rtype: :class:`~obspy.core.stream.Stream`
     :returns: Stream object containing header and data.
     .. rubric:: Example
@@ -42,7 +48,7 @@ def _read_gcf(filename, headonly=False, **kwargs):  # @UnusedVariable
     """
     traces = []
     with open(filename, 'rb') as f:
-        # reading multiple gcf parts
+        # reading multiple gse2 parts
         while True:
             try:
                 if headonly:
