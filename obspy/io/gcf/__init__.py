@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 obspy.io.gcf - Guralp Compressed Format read support for ObsPy
-==========================================================
+==============================================================
 This module provides read support for GCF waveform data and header info.
 Most methods are based on info from Guralp site
 http://geophysics.eas.gatech.edu/GTEQ/Scream4.4/GCF_Specification.htm
@@ -17,6 +17,8 @@ Similar to reading any other waveform data format using :mod:`obspy.core`:
 >>> from obspy import read
 >>> st = read("/path/to/datafile.gcf")
 The format will be determined automatically.
+
+Writing
 -------
 You may export the data to the file system using the
 :meth:`~obspy.core.stream.Stream.write` method of an existing
