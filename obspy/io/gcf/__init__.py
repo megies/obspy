@@ -11,6 +11,7 @@ http://geophysics.eas.gatech.edu/GTEQ/Scream4.4/GCF_Specification.htm
 :license:
     GNU Lesser General Public License, Version 3
     (https://www.gnu.org/copyleft/lesser.html)
+    
 Reading
 -------
 Similar to reading any other waveform data format using :mod:`obspy.core`:
