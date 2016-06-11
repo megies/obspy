@@ -51,6 +51,7 @@ The functionality is provided through the following packages:
    obspy.io.sh
    obspy.io.wav
    obspy.io.y
+   obspy.io.gcf
 
 .. rubric:: Event Data Import/Export Plug-ins
 
