@@ -162,7 +162,7 @@ ENTRY_POINTS = {
         'WAV = obspy.io.wav.core',
         'AH = obspy.io.ah.core',
         'KNET = obspy.io.nied.knet',
-        'GCF = obspy.io.gcf.core
+        'GCF = obspy.io.gcf.core'
         ],
     'obspy.plugin.waveform.TSPAIR': [
         'isFormat = obspy.io.ascii.core:_is_tspair',
@@ -271,7 +271,7 @@ ENTRY_POINTS = {
     'obspy.plugin.waveform.GCF': [
         'isFormat = obspy.io.gcf.core:_is_gcf',
         'readFormat = obspy.io.gcf.core:_read_gcf',
-        ]
+        ],
     'obspy.plugin.event': [
         'QUAKEML = obspy.io.quakeml.core',
         'ZMAP = obspy.io.zmap.core',
