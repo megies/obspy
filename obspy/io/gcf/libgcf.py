@@ -38,10 +38,7 @@ bits_d = {  # Table 3.2: format field to data bytes
 
 def is_gcf(f):
     'Test if file is GCF by reading at least 1 data block'
-    while True:
-        header, data = read(f)
-        if len(data):
-            break
+    header, data = read_data_block(f)
 
 
 def decode36(data):
