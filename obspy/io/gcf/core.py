@@ -4,6 +4,10 @@ GCF bindings to ObsPy core module.
 """
 
 
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from future.builtins import *  # NOQA
+
 from obspy import Stream, Trace
 
 from . import libgcf
