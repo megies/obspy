@@ -16,7 +16,7 @@ Reading
 -------
 Similar to reading any other waveform data format using :mod:`obspy.core`:
 >>> from obspy import read
->>> st = read("/path/to/datafile.gcf")
+>>> st = read("/path/to/20160603_1955n.gcf")
 The format will be determined automatically.
 
 Writing
