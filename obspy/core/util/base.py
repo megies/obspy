@@ -38,7 +38,7 @@ DEFAULT_MODULES = ['clients.filesystem', 'core', 'db', 'geodetics', 'imaging',
                    'io.datamark', 'io.gse2', 'io.json', 'io.kinemetrics',
                    'io.kml', 'io.mseed', 'io.ndk', 'io.nied', 'io.nlloc',
                    'io.pdas', 'io.pde', 'io.quakeml', 'io.sac', 'io.seg2',
-                   'io.segy', 'io.seisan', 'io.sh', 'io.shapefile','io.gcf',
+                   'io.segy', 'io.seisan', 'io.sh', 'io.shapefile', 'io.gcf',
                    'io.seiscomp', 'io.stationtxt', 'io.stationxml', 'io.wav',
                    'io.xseed', 'io.y', 'io.zmap', 'realtime', 'signal', 'taup']
 NETWORK_MODULES = ['clients.arclink', 'clients.earthworm', 'clients.fdsn',
@@ -50,7 +50,8 @@ ALL_MODULES = DEFAULT_MODULES + NETWORK_MODULES
 WAVEFORM_PREFERRED_ORDER = ['MSEED', 'SAC', 'GSE2', 'SEISAN', 'SACXY', 'GSE1',
                             'Q', 'SH_ASC', 'SLIST', 'TSPAIR', 'Y', 'PICKLE',
                             'SEGY', 'SU', 'SEG2', 'WAV', 'DATAMARK', 'CSS',
-                            'NNSA_KB_CORE', 'AH', 'PDAS', 'KINEMETRICS_EVT', 'GCF']
+                            'NNSA_KB_CORE', 'AH', 'PDAS', 'KINEMETRICS_EVT',
+                            'GCF']
 EVENT_PREFERRED_ORDER = ['QUAKEML', 'NLLOC_HYP']
 # waveform plugins accepting a byteorder keyword
 WAVEFORM_ACCEPT_BYTEORDER = ['MSEED', 'Q', 'SAC', 'SEGY', 'SU']
