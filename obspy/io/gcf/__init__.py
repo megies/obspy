@@ -14,9 +14,7 @@ http://geophysics.eas.gatech.edu/GTEQ/Scream4.4/GCF_Specification.htm
     
 Reading
 -------
-Similar to reading any other waveform data format using :mod:`obspy.core`:
->>> from obspy import read
->>> st = read("/path/to/20160603_1955n.gcf",format='GCF')
+Similar to reading any other waveform data format using :mod:`obspy.core`
 The format will be determined automatically.
 
 Writing
