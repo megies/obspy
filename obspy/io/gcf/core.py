@@ -46,11 +46,11 @@ def _read_gcf(filename, headonly=False, **kwargs):  # @UnusedVariable
     :rtype: :class:`~obspy.core.stream.Stream`
     :returns: Stream object containing header and data.
     .. rubric:: Example
-    >>> from obspy import read
-    >>> st = read("/path/to/20160603_1955n.gcf",format="GCF")
     """
+    #>>> from obspy import read
+    #>>> st = read("/path/to/20160603_1955n.gcf",format="GCF")
+    #"""
     traces = []
-    print('%s' % (filename))
     with open(filename, 'rb') as f:
         while True:
             try:
