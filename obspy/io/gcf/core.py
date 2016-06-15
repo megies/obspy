@@ -50,6 +50,7 @@ def _read_gcf(filename, headonly=False, **kwargs):  # @UnusedVariable
     >>> st = read("/path/to/20160603_1955n.gcf",format="GCF")
     """
     traces = []
+    print filename
     with open(filename, 'rb') as f:
         while True:
             try:
