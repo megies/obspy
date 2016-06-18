@@ -64,7 +64,7 @@ def _read_gcf(filename, headonly=False, **kwargs):  # @UnusedVariable
                         traces.append(Trace(header=hd[0], data=hd[1]))
             except EOFError:
                 break
+    st = Stream(traces=traces)
     if not headonly:
-        return Stream(traces=traces).merge(-1)
-    else:
-        return Stream(traces=traces)
+        st.merge(-1)
+    return st
