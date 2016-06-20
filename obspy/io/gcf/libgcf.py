@@ -41,12 +41,16 @@ bits_d = {  # Table 3.2: format field to data bytes
 
 
 def is_gcf(f):
-    'Test if file is GCF by reading at least 1 data block'
+    """
+    Test if file is GCF by reading at least 1 data block
+    """
     header, data = read_data_block(f)
 
 
 def decode36(data):
-    'Decode base 36 data'
+    """
+    Decode base 36 data
+    """
     # http://geophysics.eas.gatech.edu/GTEQ/Scream4.4/Decoding_Base_36_numbers_C.htm
     s = ''
     while data:
@@ -59,10 +63,13 @@ def decode36(data):
 
 
 def decode_date_time(data):
-    '''Decode date and time field.
+    """
+    Decode date and time field.
+    
     The date code is a 32 bit value specifying the start time of the block.
     Bits 0-16 contain the number of seconds since midnight,
-    and bits 17-31 the number of days since 17th November 1989.'''
+    and bits 17-31 the number of days since 17th November 1989.
+    """
     days = data >> 17
     secs = data & 0x1FFFF
     starttime = UTCDateTime('1989-11-17') + days * 86400 + secs
@@ -70,13 +77,14 @@ def decode_date_time(data):
 
 
 def read_data_block(f, headonly=False, channel_prefix="HH", **kwargs):
-    '''Read one data block from GCF file.
+    """Read one data block from GCF file.
+
     more details can be found here:
     http://geophysics.eas.gatech.edu/GTEQ/Scream4.4/GCF_Specification.htm
     f - file object to read from
     if skipData is True, Only header is returned.
     if not a data block (SPS=0) - returns None.
-    '''
+    """
     # get ID
     sysid = np.fromfile(f, count=1, dtype='>u4')
     if not sysid:
@@ -137,10 +145,14 @@ def read_data_block(f, headonly=False, channel_prefix="HH", **kwargs):
 
 
 def read_header(f, **kwargs):
-    'Reads header only from GCF file.'
+    """
+    Reads header only from GCF file.
+    """
     return read_data_block(f, headonly=True, **kwargs)
 
 
 def read(f, **kwargs):
-    'Reads header and data from GCF file.'
+    """
+    Reads header and data from GCF file.
+    """
     return read_data_block(f, headonly=False, **kwargs)

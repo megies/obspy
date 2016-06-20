@@ -16,6 +16,7 @@ from . import libgcf
 def _is_gcf(filename):
     """
     Checks whether a file is GCF or not.
+
     :type filename: str
     :param filename: GCF file to be checked.
     :rtype: bool
@@ -32,10 +33,13 @@ def _is_gcf(filename):
 def _read_gcf(filename, headonly=False, **kwargs):  # @UnusedVariable
     """
     Reads a GCF file and returns a Stream object.
+
     only GCF files containing data records are supported.
+
     .. warning::
         This function should NOT be called directly, it registers via the
         ObsPy :func:`~obspy.core.stream.read` function, call this instead.
+
     :type filename: str
     :param filename: GCF file to be read.
     :type headonly: bool, optional
