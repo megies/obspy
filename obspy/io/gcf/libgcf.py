@@ -65,7 +65,7 @@ def decode36(data):
 def decode_date_time(data):
     """
     Decode date and time field.
-    
+
     The date code is a 32 bit value specifying the start time of the block.
     Bits 0-16 contain the number of seconds since midnight,
     and bits 17-31 the number of days since 17th November 1989.
