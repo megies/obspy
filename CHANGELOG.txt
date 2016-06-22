@@ -36,6 +36,8 @@ master:
  - obspy.scripts:
    * obspy-scan command line script now also plots and prints overlaps
      alongside gaps (see #1366)
+ - obspy.io.gcf
+    * Read support for Guralp Compressed Format (GCF) waveform data. (see #1449)
 
 1.0.2: (doi: 10.5281/zenodo.49636)
  - obspy.core:

@@ -14,6 +14,10 @@ from obspy import read
 from obspy.core.utcdatetime import UTCDateTime
 from obspy.io.gcf.core import _read_gcf
 
+EXPECTED = array([-49378, -49213, -49273, -49277, -49341, -49415, -49289,
+                  -49309, -49277, -49381, -49441, -49276, -49331, -49268,
+                  -49250, -49407, -49421, -49282, -49224, -49281], dtype=int32)
+
 
 class CoreTestCase(unittest.TestCase):
     """
@@ -40,6 +44,7 @@ class CoreTestCase(unittest.TestCase):
         self.assertAlmostEqual(st[0].stats.sampling_rate, 100.0)
         self.assertEqual(st[0].stats.channel, 'HHN')
         self.assertEqual(st[0].stats.station, '6018')
+        np.testing.assert_array_equal(EXPECTED, st[0].data[:20])
 
     def test_read_via_module(self):
         """
@@ -58,6 +63,7 @@ class CoreTestCase(unittest.TestCase):
         self.assertAlmostEqual(st[0].stats.sampling_rate, 100.0)
         self.assertEqual(st[0].stats.channel, 'HHN')
         self.assertEqual(st[0].stats.station, '6018')
+        np.testing.assert_array_equal(EXPECTED, st[0].data[:20])
 
 
 def suite():
