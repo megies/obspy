@@ -54,11 +54,12 @@ def decode36(data):
     # http://geophysics.eas.gatech.edu/GTEQ/Scream4.4/Decoding_Base_36_numbers_C.htm
     s = ''
     while data:
+        print(data)
         imed = data % 36
         if imed > 9:
             imed += 7
         s = chr(imed + 48) + s
-        data = data / 36
+        data = np.uint32(data / 36)
     return s
 
 
