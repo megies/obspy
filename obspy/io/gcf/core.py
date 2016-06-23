@@ -103,4 +103,4 @@ def _read_gcf(filename, headonly=False, **kwargs):  # @UnusedVariable
     st = Stream(traces=traces)
     if headonly:
         return merge_gcf_stream(st)
-    return st.mreg(-1)
+    return st.merge(-1)
