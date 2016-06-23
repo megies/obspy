@@ -57,12 +57,12 @@ class CoreTestCase(unittest.TestCase):
         filename = os.path.join(self.path, '20160603_1955n.gcf')
         # 1
         st = read(filename, headonly=True)
-        self.assertEqual(len(st), 2)
+        self.assertEqual(len(st), 1)
         self.assertEqual(st[0].stats.starttime,
                          UTCDateTime('2016-06-03T19:55:00.000000Z'))
         self.assertEqual(st[0].stats.endtime,
-                         UTCDateTime('2016-06-03T19:55:01.990000Z'))
-        self.assertEqual(st[0].stats.npts, 200)
+                         UTCDateTime('2016-06-03T19:55:02.990000Z'))
+        self.assertEqual(st[0].stats.npts, 300)
         self.assertAlmostEqual(st[0].stats.sampling_rate, 100.0)
         self.assertEqual(st[0].stats.channel, 'HHN')
         self.assertEqual(st[0].stats.station, '6018')
@@ -93,12 +93,12 @@ class CoreTestCase(unittest.TestCase):
         filename = os.path.join(self.path, '20160603_1955n.gcf')
         # 1
         st = _read_gcf(filename, headonly=True)
-        self.assertEqual(len(st), 2)
+        self.assertEqual(len(st), 1)
         self.assertEqual(st[0].stats.starttime,
                          UTCDateTime('2016-06-03T19:55:00.000000Z'))
         self.assertEqual(st[0].stats.endtime,
-                         UTCDateTime('2016-06-03T19:55:01.990000Z'))
-        self.assertEqual(st[0].stats.npts, 200)
+                         UTCDateTime('2016-06-03T19:55:02.990000Z'))
+        self.assertEqual(st[0].stats.npts, 300)
         self.assertAlmostEqual(st[0].stats.sampling_rate, 100.0)
         self.assertEqual(st[0].stats.channel, 'HHN')
         self.assertEqual(st[0].stats.station, '6018')
@@ -110,12 +110,12 @@ class CoreTestCase(unittest.TestCase):
         filename = os.path.join(self.path, '20160603_1955n.gcf')
         # 1
         st = read(filename, headonly=True, channel_prefix="HN")
-        self.assertEqual(len(st), 2)
+        self.assertEqual(len(st), 1)
         self.assertEqual(st[0].stats.starttime,
                          UTCDateTime('2016-06-03T19:55:00.000000Z'))
         self.assertEqual(st[0].stats.endtime,
-                         UTCDateTime('2016-06-03T19:55:01.990000Z'))
-        self.assertEqual(st[0].stats.npts, 200)
+                         UTCDateTime('2016-06-03T19:55:02.990000Z'))
+        self.assertEqual(st[0].stats.npts, 300)
         self.assertAlmostEqual(st[0].stats.sampling_rate, 100.0)
         self.assertEqual(st[0].stats.channel, 'HNN')
         self.assertEqual(st[0].stats.station, '6018')
