@@ -8,9 +8,41 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from future.builtins import *  # NOQA
 
-from obspy import Stream, Trace
+from obspy import Stream, Trace, UTCDateTime
 
 from . import libgcf
+
+
+def merge_gcf_stream(st):
+    """
+    Merges GCF stream (replacing Stream.merge(-1) for headonly=True)
+
+    :type st: :class:`~obspy.core.stream.Stream`
+    :param st: GCF Stream object whith no data
+    :rtype: :class:`~obspy.core.stream.Stream`
+    :returns: Stream object containing header and data.
+    """
+    traces = []
+    for tr in st:
+        merged = 0
+        delta = tr.stats.delta
+        starttime = tr.stats.starttime
+        endtime = tr.stats.endtime
+        for trace in traces:
+            if tr.id == trace.id and delta == trace.stats.delta \
+               and not starttime == trace.stats.starttime:
+                if starttime - trace.stats.endtime <= delta:
+                    trace.stats.npts += tr.stats.npts
+                    merged = 1
+                    break
+                elif trace.stats.starttime - endtime <= delta:
+                    trace.stats.starttime = UTCDateTime(starttime)
+                    trace.stats.npts += tr.stats.npts
+                    merged = 1
+                    break
+        if not merged:
+            traces.append(tr)
+    return Stream(traces=traces)
 
 
 def _is_gcf(filename):
@@ -49,9 +81,10 @@ def _read_gcf(filename, headonly=False, **kwargs):  # @UnusedVariable
         Defaults to ``HH``.
     :rtype: :class:`~obspy.core.stream.Stream`
     :returns: Stream object containing header and data.
+
     .. rubric:: Example
     >>> from obspy import read
-    >>> st = read("/path/to/20160603_1955n.gcf",format="GCF")
+    >>> st = read("/path/to/20160603_1955n.gcf", format="GCF")
     """
     traces = []
     with open(filename, 'rb') as f:
@@ -68,6 +101,6 @@ def _read_gcf(filename, headonly=False, **kwargs):  # @UnusedVariable
             except EOFError:
                 break
     st = Stream(traces=traces)
-    if not headonly:
-        st.merge(-1)
-    return st
+    if headonly:
+        return merge_gcf_stream(st)
+    return st.mreg(-1)

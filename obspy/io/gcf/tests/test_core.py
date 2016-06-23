@@ -16,6 +16,7 @@ from obspy import read
 from obspy.core.utcdatetime import UTCDateTime
 from obspy.io.gcf.core import _read_gcf
 
+
 EXPECTED = np.array([-49378, -49213, -49273, -49277, -49341, -49415, -49289,
                      -49309, -49277, -49381, -49441, -49276, -49331, -49268,
                      -49250, -49407, -49421, -49282, -49224, -49281],
@@ -100,6 +101,23 @@ class CoreTestCase(unittest.TestCase):
         self.assertEqual(st[0].stats.npts, 200)
         self.assertAlmostEqual(st[0].stats.sampling_rate, 100.0)
         self.assertEqual(st[0].stats.channel, 'HHN')
+        self.assertEqual(st[0].stats.station, '6018')
+
+    def test_read_channel_prefix_via_obspy(self):
+        """
+        Read files via obspy.core.stream.read function.
+        """
+        filename = os.path.join(self.path, '20160603_1955n.gcf')
+        # 1
+        st = read(filename, headonly=True, channel_prefix="HN")
+        self.assertEqual(len(st), 2)
+        self.assertEqual(st[0].stats.starttime,
+                         UTCDateTime('2016-06-03T19:55:00.000000Z'))
+        self.assertEqual(st[0].stats.endtime,
+                         UTCDateTime('2016-06-03T19:55:01.990000Z'))
+        self.assertEqual(st[0].stats.npts, 200)
+        self.assertAlmostEqual(st[0].stats.sampling_rate, 100.0)
+        self.assertEqual(st[0].stats.channel, 'HNN')
         self.assertEqual(st[0].stats.station, '6018')
 
 

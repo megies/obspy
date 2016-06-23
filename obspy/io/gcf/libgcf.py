@@ -56,9 +56,11 @@ def decode36(data):
     while data:
         imed = data % 36
         if imed > 9:
-            imed += 7
-        s = chr(imed + 48) + s
-        data = np.uint32(data / 36)
+            c = chr(imed - 10 + ord('A'))
+        else:
+            c = chr(imed + ord('0'))
+        s = c + s
+        data = data // 36
     return s
 
 
@@ -77,7 +79,8 @@ def decode_date_time(data):
 
 
 def read_data_block(f, headonly=False, channel_prefix="HH", **kwargs):
-    """Read one data block from GCF file.
+    """
+    Read one data block from GCF file.
 
     more details can be found here:
     http://geophysics.eas.gatech.edu/GTEQ/Scream4.4/GCF_Specification.htm

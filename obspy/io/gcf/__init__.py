@@ -11,7 +11,7 @@ http://geophysics.eas.gatech.edu/GTEQ/Scream4.4/GCF_Specification.htm
 :license:
     GNU Lesser General Public License, Version 3
     (https://www.gnu.org/copyleft/lesser.html)
-    
+
 Reading
 -------
 Similar to reading any other waveform data format using :mod:`obspy.core`
@@ -19,7 +19,8 @@ The format will be determined automatically.
 
 Writing
 -------
-You may export the data to the file system using the
+No Writung support fot this format. You may export the data
+to the file system using the
 :meth:`~obspy.core.stream.Stream.write` method of an existing
 :class:`~obspy.core.stream.Stream` object
 """
