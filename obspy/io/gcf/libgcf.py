@@ -49,7 +49,7 @@ def is_gcf(f):
 
 def decode36(data):
     """
-    Decode base 36 data
+    Converts an integer into a base36 string.
     """
     # http://geophysics.eas.gatech.edu/GTEQ/Scream4.4/Decoding_Base_36_numbers_C.htm
     s = ''

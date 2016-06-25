@@ -16,13 +16,6 @@ Reading
 -------
 Similar to reading any other waveform data format using :mod:`obspy.core`
 The format will be determined automatically.
-
-Writing
--------
-No Writung support fot this format. You may export the data
-to the file system using the
-:meth:`~obspy.core.stream.Stream.write` method of an existing
-:class:`~obspy.core.stream.Stream` object
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
