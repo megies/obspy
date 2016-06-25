@@ -145,6 +145,23 @@ class CoreTestCase(unittest.TestCase):
         self.assertEqual(st2[0].stats.channel, 'HNN')
         self.assertEqual(st2[0].stats.station, '6018')
 
+    def test_sps_d(self):
+        """
+        Read files via obspy.core.stream.read function.
+        """
+        filename = os.path.join(self.path, '20160603_1910n.gcf')
+        # 1
+        st = read(filename, headonly=True, channel_prefix="HN")
+        self.assertEqual(len(st), 1)
+        self.assertEqual(st[0].stats.starttime,
+                         UTCDateTime('2016-06-03T19:10:00.000000Z'))
+        self.assertEqual(st[0].stats.endtime,
+                         UTCDateTime('2016-06-03T19:10:01.998000Z'))
+        self.assertEqual(st[0].stats.npts, 1000)
+        self.assertAlmostEqual(st[0].stats.sampling_rate, 500.0)
+        self.assertEqual(st[0].stats.channel, 'HNN')
+        self.assertEqual(st[0].stats.station, '6018')
+
 
 def suite():
     return unittest.makeSuite(CoreTestCase, 'test')
