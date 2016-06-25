@@ -127,7 +127,7 @@ def read_data_block(f, headonly=False, channel_prefix="HH", **kwargs):
         f.seek(4 * (N + 2), 1)  # skip data part (inc. FIC and RIC)
         # skip to end of block if only partly filled with data
         if 1000 - int(N) * 4 > 0:
-            f.seek(1000 - int(N) * 4, 1)
+            f.seek(1000 - N * 4, 1)
         return header
     else:
         # get FIC
@@ -141,7 +141,7 @@ def read_data_block(f, headonly=False, channel_prefix="HH", **kwargs):
         ric = np.frombuffer(f.read(4), count=1, dtype='>i4')
         # skip to end of block if only partly filled with data
         if 1000 - int(N) * 4 > 0:
-            f.seek(1000 - int(N) * 4, 1)
+            f.seek(1000 - N * 4, 1)
         # verify last data sample matches RIC
         if not data[-1] == ric:
             raise ValueError("Last sample mismatch with RIC")
