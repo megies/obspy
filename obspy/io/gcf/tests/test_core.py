@@ -120,7 +120,7 @@ class CoreTestCase(unittest.TestCase):
         self.assertEqual(st[0].stats.channel, 'HNN')
         self.assertEqual(st[0].stats.station, '6018')
 
-    def test_merge_cgf_stream(self):
+    def test_merge_gcf_stream(self):
         """
         Read files via obspy.core.stream.read function.
         """

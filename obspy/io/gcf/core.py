@@ -24,7 +24,6 @@ def merge_gcf_stream(st):
     """
     traces = []
     for tr in st:
-        merged = 0
         delta = tr.stats.delta
         starttime = tr.stats.starttime
         endtime = tr.stats.endtime
@@ -33,14 +32,12 @@ def merge_gcf_stream(st):
                and not starttime == trace.stats.starttime:
                 if 0 < starttime - trace.stats.endtime <= delta:
                     trace.stats.npts += tr.stats.npts
-                    merged = 1
                     break
                 elif 0 < trace.stats.starttime - endtime <= delta:
                     trace.stats.starttime = UTCDateTime(starttime)
                     trace.stats.npts += tr.stats.npts
-                    merged = 1
                     break
-        if not merged:
+        else:
             traces.append(tr)
     return Stream(traces=traces)
 
