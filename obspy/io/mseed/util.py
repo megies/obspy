@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Mini-SEED specific utilities.
+MiniSEED specific utilities.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -19,25 +19,25 @@ from struct import pack, unpack
 import numpy as np
 
 from obspy import UTCDateTime
-from obspy.core.util import score_at_percentile
 from .headers import (ENCODINGS, ENDIAN, FIXED_HEADER_ACTIVITY_FLAGS,
                       FIXED_HEADER_DATA_QUAL_FLAGS,
                       FIXED_HEADER_IO_CLOCK_FLAGS, FRAME, HPTMODULUS,
-                      SAMPLESIZES, UNSUPPORTED_ENCODINGS, clibmseed)
+                      SAMPLESIZES, UNSUPPORTED_ENCODINGS, MSRecord,
+                      MSFileParam, MS_NOERROR, clibmseed)
 
 
 def get_start_and_end_time(file_or_file_object):
     """
-    Returns the start and end time of a Mini-SEED file or file-like object.
+    Returns the start and end time of a MiniSEED file or file-like object.
 
     :type file_or_file_object: str or file
-    :param file_or_file_object: Mini-SEED file name or open file-like object
-        containing a Mini-SEED record.
+    :param file_or_file_object: MiniSEED file name or open file-like object
+        containing a MiniSEED record.
     :return: tuple (start time of first record, end time of last record)
 
     This method will return the start time of the first record and the end time
     of the last record. Keep in mind that it will not return the correct result
-    if the records in the Mini-SEED file do not have a chronological ordering.
+    if the records in the MiniSEED file do not have a chronological ordering.
 
     The returned end time is the time of the last data sample and not the
     time that the last sample covers.
@@ -59,7 +59,7 @@ def get_start_and_end_time(file_or_file_object):
         (UTCDateTime(2007, 12, 31, 23, 59, 59, 915000),
         UTCDateTime(2008, 1, 1, 0, 0, 20, 510000))
 
-    And also with a Mini-SEED file stored in a BytesIO
+    And also with a MiniSEED file stored in a BytesIO
 
     >>> import io
     >>> file_object = io.BytesIO(f.read())
@@ -95,23 +95,312 @@ def get_start_and_end_time(file_or_file_object):
     return starttime, endtime
 
 
-def get_timing_and_data_quality(file_or_file_object):
+def get_flags_c(files, starttime=None, endtime=None,
+                io_flags=True, ac_flags=True,
+                dq_flags=True, timing_quality=True):
     """
-    Counts all data quality flags of the given Mini-SEED file and returns
-    statistics about the timing quality if applicable.
+    clibmseed implementation of get_flags to be used in
+    obspy.signal.quality_control for a performance boost.
+    See get_flags for a description
+    """
 
-    :type file_or_file_object: str or file
-    :param file_or_file_object: Mini-SEED file name or open file-like object
-        containing a Mini-SEED record.
+    # Splat input files to array
+    if not isinstance(files, list):
+        files = [files]
+
+    starttime = float(UTCDateTime(starttime)) if starttime else None
+    endtime = float(UTCDateTime(endtime)) if endtime else None
+
+    msr = clibmseed.msr_init(C.POINTER(MSRecord)())
+    msf = C.POINTER(MSFileParam)()
+
+    records = []
+    retcode = 0
+
+    # Use clibmseed to get header parameters for all files
+    for file in files:
+
+        while(True):
+
+            retcode = clibmseed.ms_readmsr_r(C.pointer(msf), C.pointer(msr),
+                                             file.encode('ascii', 'strict'),
+                                             -1, None, None, 1, 0, 0)
+
+            if retcode != MS_NOERROR:
+                break
+
+            # Check starttime and endtime of the record
+            # Read the sampling rate from the header (is this unsafe?)
+            # Tried using msr.msr_nomsamprate(msr) but the return is strange
+            r_start = clibmseed.msr_starttime(msr) / HPTMODULUS
+            r_delta = (1 / msr.contents.samprate)
+            r_end = (clibmseed.msr_endtime(msr) / HPTMODULUS) + r_delta
+
+            # Cut off records to start & endtime
+            if starttime is not None:
+                if r_end <= starttime:
+                    continue
+                if r_start < starttime:
+                    r_start = starttime
+
+            if endtime is not None:
+                if r_start >= endtime:
+                    continue
+                if r_end > endtime:
+                    r_end = endtime
+
+            # Get the timing quality in blockette1001 if it exists
+            if msr.contents.Blkt1001:
+                r_tq = msr.contents.Blkt1001.contents.timing_qual
+            else:
+                r_tq = None
+
+            # Collect all records and parameters in the range
+            records.append({
+                'start': r_start,
+                'delta': r_delta,
+                'end': r_end,
+                'tq': r_tq,
+                'tc': msr.contents.fsdh.contents.time_correct,
+                'io': msr.contents.fsdh.contents.io_flags,
+                'dq': msr.contents.fsdh.contents.dq_flags,
+                'ac': msr.contents.fsdh.contents.act_flags
+            })
+
+        # Reset for new file
+        clibmseed.ms_readmsr_r(C.pointer(msf), C.pointer(msr),
+                               None, -1, None, None, 0, 0, 0)
+
+    # It should be faster to sort by record endtime
+    # if we reverse the array first
+    records.reverse()
+    records.sort(key=lambda x: x["end"], reverse=True)
+
+    # Create collections for the flags
+    dq_flags_counts = collections.OrderedDict([
+        ("amplifier_saturation_detected", 0),
+        ("digitizer_clipping_detected", 0),
+        ("spikes_detected", 0),
+        ("glitches_detected", 0),
+        ("missing_data_present", 0),
+        ("telemetry_sync_error", 0),
+        ("digital_filter_charging", 0),
+        ("time_tag_uncertain", 0)
+    ])
+    dq_flags_seconds = collections.OrderedDict([
+        ("amplifier_saturation_detected", 0),
+        ("digitizer_clipping_detected", 0),
+        ("spikes_detected", 0),
+        ("glitches_detected", 0),
+        ("missing_data_present", 0),
+        ("telemetry_sync_error", 0),
+        ("digital_filter_charging", 0),
+        ("time_tag_uncertain", 0)
+    ])
+
+    io_flags_counts = collections.OrderedDict([
+        ("station_volume_parity_error", 0),
+        ("long_record_read", 0),
+        ("short_record_read", 0),
+        ("start_time_series", 0),
+        ("end_time_series", 0),
+        ("clock_locked", 0)
+    ])
+    io_flags_seconds = collections.OrderedDict([
+        ("station_volume_parity_error", 0),
+        ("long_record_read", 0),
+        ("short_record_read", 0),
+        ("start_time_series", 0),
+        ("end_time_series", 0),
+        ("clock_locked", 0)
+    ])
+
+    ac_flags_counts = collections.OrderedDict([
+        ("calibration_signals_present", 0),
+        ("time_correction_applied", 0),
+        ("beginning_event", 0),
+        ("end_event", 0),
+        ("positive_leap", 0),
+        ("negative_leap", 0),
+        ("event_in_progress", 0)
+    ])
+    ac_flags_seconds = collections.OrderedDict([
+        ("calibration_signals_present", 0),
+        ("time_correction_applied", 0),
+        ("beginning_event", 0),
+        ("end_event", 0),
+        ("positive_leap", 0),
+        ("negative_leap", 0),
+        ("event_in_progress", 0)
+    ])
+
+    coverage = None
+    used_record_count = 0
+    timing_correction = 0.0
+    timing_correction_count = 0
+    tq = []
+
+    # Go over all sorted records from back to front
+    for record in records:
+
+        # For counts we do not care about overlaps
+        # simply count contribution from all the records
+        if io_flags:
+            for _i, key in enumerate(io_flags_seconds.keys()):
+                if (record["io"] & (1 << _i)) != 0:
+                    io_flags_counts[key] += 1
+
+        if ac_flags:
+            for _i, key in enumerate(ac_flags_seconds.keys()):
+                if (record["ac"] & (1 << _i)) != 0:
+                    ac_flags_counts[key] += 1
+
+        if dq_flags:
+            for _i, key in enumerate(dq_flags_seconds.keys()):
+                if (record["dq"] & (1 << _i)) != 0:
+                    dq_flags_counts[key] += 1
+
+        # Coverage is the timewindow that is covered by the records
+        # so bits in overlapping records are not counted
+        # The first record starts a clean window
+        if coverage is None:
+            coverage = [record["start"], record["end"]]
+        else:
+
+            # Account for time tolerance
+            time_tolerance = 0.5 * record['delta']
+            tolerated_end = coverage[0] - time_tolerance
+
+            # Start is beyond coverage, skip the overlapping record
+            if record["start"] >= coverage[0]:
+                continue
+
+            # Fix end to the start of the coverage if it is overlaps
+            # with the coverage window. Or if it is within the allowed
+            # time tolerance
+            if record["end"] > coverage[0] or record["end"] > tolerated_end:
+                record["end"] = coverage[0]
+
+            # Extend the coverage
+            if record["start"] < coverage[0]:
+                coverage[0] = record["start"]
+
+        # Get the record length in seconds
+        record_length_seconds = (record["end"] - record["start"])
+
+        # Skip if the record length is 0 (or negative)
+        if record_length_seconds <= 0.0:
+            continue
+
+        # Overlapping records do not count ot the used_records
+        # used records tracks the amount of timing quality
+        # parameters we expect
+        used_record_count += 1
+
+        # Bitwise AND to count flags and store in orderedDicts
+        if io_flags:
+            for _i, key in enumerate(io_flags_seconds.keys()):
+                if (record["io"] & (1 << _i)) != 0:
+                    io_flags_seconds[key] += record_length_seconds
+
+        if ac_flags:
+            for _i, key in enumerate(ac_flags_seconds.keys()):
+                if (record["ac"] & (1 << _i)) != 0:
+                    ac_flags_seconds[key] += record_length_seconds
+
+        if dq_flags:
+            for _i, key in enumerate(dq_flags_seconds.keys()):
+                if (record["dq"] & (1 << _i)) != 0:
+                    dq_flags_seconds[key] += record_length_seconds
+
+        # Get the timing quality parameter and append to array
+        if timing_quality and record["tq"] is not None:
+            tq.append(float(record["tq"]))
+
+        # Check if a timing correction is specified
+        # (not whether it has been applied)
+        if record["tc"] != 0:
+            timing_correction += record_length_seconds
+            timing_correction_count += 1
+
+    # Get the total time analyzed
+    if endtime is not None and starttime is not None:
+        total_time_seconds = endtime - starttime
+    else:
+        total_time_seconds = coverage[1] - coverage[0]
+
+    # Percentage of time of bit flags set
+    if io_flags:
+        for _i, key in enumerate(io_flags_seconds.keys()):
+            io_flags_seconds[key] /= total_time_seconds * 1e-2
+    if dq_flags:
+        for _i, key in enumerate(dq_flags_seconds.keys()):
+            dq_flags_seconds[key] /= total_time_seconds * 1e-2
+    if ac_flags:
+        for _i, key in enumerate(ac_flags_seconds.keys()):
+            ac_flags_seconds[key] /= total_time_seconds * 1e-2
+
+    timing_correction /= total_time_seconds * 1e-2
+
+    # Add the timing quality if it is set for all used records
+    if timing_quality:
+        if len(tq) == used_record_count:
+            tq = np.array(tq, dtype=np.float64)
+        else:
+            tq = None
+
+    return {
+        'timing_correction': timing_correction,
+        'timing_correction_count': timing_correction_count,
+        'io_flags_percentages': io_flags_seconds,
+        'io_flags_counts': io_flags_counts,
+        'dq_flags_percentages': dq_flags_seconds,
+        'dq_flags_counts': dq_flags_counts,
+        'ac_flags_percentages': ac_flags_seconds,
+        'ac_flags_counts': ac_flags_counts,
+        'timing_quality': tq,
+        'record_count': len(records),
+        'number_of_records_used': used_record_count,
+    }
+
+
+def get_flags(files, starttime=None, endtime=None,
+              io_flags=True, activity_flags=True,
+              data_quality_flags=True, timing_quality=True):
+    """
+    Counts all data quality, I/O, and activity flags of the given MiniSEED
+    file and returns statistics about the timing quality if applicable.
+
+    :param files: MiniSEED file or list of MiniSEED files.
+    :type files: list, str, file-like object
+    :param starttime: Only use records whose end time is larger than this
+        given time.
+    :type starttime: str or :class:`obspy.core.utcdatetime.UTCDateTime`
+    :param endtime: Only use records whose start time is smaller than this
+        given time.
+    :type endtime: str or :class:`obspy.core.utcdatetime.UTCDateTime`
+    :param io_flags: Extract I/O flag counts.
+    :type io_flags: bool
+    :param activity_flags: Extract activity flag counts.
+    :type activity_flags: bool
+    :param data_quality_flags: Extract data quality flag counts.
+    :type data_quality_flags: bool
+    :param timing_quality: Extract timing quality and corresponding statistics.
+    :type timing_quality: bool
 
     :return: Dictionary with information about the timing quality and the data
-        quality flags.
+        quality, I/O, and activity flags. It has the following keys:
+        ``"record_count"``, ``"timing_correction"``, ``"data_quality_flags"``,
+        ``"activity_flags"``, ``"io_and_clock_flags"``,
+        and ``"timing_quality"``.
 
-    .. rubric:: Data quality
+    .. rubric:: Flags
 
-    This method will count all set data quality flag bits in the fixed section
-    of the data header in a Mini-SEED file and returns the total count for each
-    flag type.
+    This method will count all set bit flags in the fixed header of a MiniSEED
+    file and return the total count for each flag type. The following flags
+    are extracted:
+
+    Data quality flags
 
     ========  =================================================
     Bit       Description
@@ -126,141 +415,185 @@ def get_timing_and_data_quality(file_or_file_object):
     [Bit 7]   Time tag is questionable
     ========  =================================================
 
+    Activity flags
+
+    ========  =================================================
+    Bit       Description
+    ========  =================================================
+    [Bit 0]   Calibration signals present
+    [Bit 1]   Time correction applied
+    [Bit 2]   Beginning of an event, station trigger
+    [Bit 3]   End of the event, station detriggers
+    [Bit 4]   A positive leap second happened during this record
+    [Bit 5]   A negative leap second happened during this record
+    [Bit 6]   Event in progress
+
+    I/O and clock flags
+
+    ========  =================================================
+    Bit       Description
+    ========  =================================================
+    [Bit 0]   Station volume parity error possibly present
+    [Bit 1]   Long record read (possibly no problem)
+    [Bit 2]   Short record read (record padded)
+    [Bit 3]   Start of time series
+    [Bit 4]   End of time series
+    [Bit 5]   Clock locked
+
     .. rubric:: Timing quality
 
     If the file has a Blockette 1001 statistics about the timing quality will
-    also be returned. See the doctests for more information.
+    be returned if ``timing_quality`` is True. See the doctests for more
+    information.
 
     This method will read the timing quality in Blockette 1001 for each
     record in the file if available and return the following statistics:
-    Minima, maxima, average, median and upper and lower quantile.
-    Quantiles are calculated using a integer round outwards policy: lower
-    quantiles are rounded down (probability < 0.5), and upper quantiles
-    (probability > 0.5) are rounded up.
-    This gives no more than the requested probability in the tails, and at
-    least the requested probability in the central area.
-    The median is calculating by either taking the middle value or, with an
-    even numbers of values, the average between the two middle values.
+    Minima, maxima, average, median and upper and lower quartiles.
 
-    .. rubric:: Example
+    .. rubric:: Examples
 
     >>> from obspy.core.util import get_example_file
     >>> filename = get_example_file("qualityflags.mseed")
-    >>> tq = get_timing_and_data_quality(filename)
-    >>> for k, v in tq.items():
+    >>> flags = get_flags(filename)
+    >>> for k, v in flags["data_quality_flags"].items():
     ...     print(k, v)
-    data_quality_flags [9, 8, 7, 6, 5, 4, 3, 2]
+    amplifier_saturation_detected 9
+    digitizer_clipping_detected 8
+    spikes_detected 7
+    glitches_detected 6
+    missing_data_present 5
+    telemetry_sync_error 4
+    digital_filter_charging 3
+    time_tag_uncertain 2
 
-    Also works with file pointers and BytesIOs.
-
-    >>> f = open(filename, 'rb')
-    >>> tq = get_timing_and_data_quality(f)
-    >>> for k, v in tq.items():
-    ...     print(k, v)
-    data_quality_flags [9, 8, 7, 6, 5, 4, 3, 2]
-
-    >>> import io
-    >>> file_object = io.BytesIO(f.read())
-    >>> f.close()
-    >>> tq = get_timing_and_data_quality(file_object)
-    >>> for k, v in tq.items():
-    ...     print(k, v)
-    data_quality_flags [9, 8, 7, 6, 5, 4, 3, 2]
-
-    If the file pointer or BytesIO position does not correspond to the first
-    record the omitted records will be skipped.
-
-    >>> _ = file_object.seek(1024, 1)
-    >>> tq = get_timing_and_data_quality(file_object)
-    >>> for k, v in tq.items():
-    ...     print(k, v)
-    data_quality_flags [8, 8, 7, 6, 5, 4, 3, 2]
-    >>> file_object.close()
-
-    Reading a file with Blockette 1001 will return timing quality statistics.
-    The data quality flags will always exists because they are part of the
-    fixed Mini-SEED header and therefore need to be in every Mini-SEED file.
+    Reading a file with Blockette 1001 will return timing quality statistics if
+    requested.
 
     >>> filename = get_example_file("timingquality.mseed")
-    >>> tq = get_timing_and_data_quality(filename)
-    >>> for k, v in sorted(tq.items()):
-    ...     print(k, v)
-    data_quality_flags [0, 0, 0, 0, 0, 0, 0, 0]
-    timing_quality_average 50.0
-    timing_quality_lower_quantile 25.0
-    timing_quality_max 100.0
-    timing_quality_median 50.0
-    timing_quality_min 0.0
-    timing_quality_upper_quantile 75.0
-
-    Also works with file pointers and BytesIOs.
-
-    >>> f = open(filename, 'rb')
-    >>> tq = get_timing_and_data_quality(f)
-    >>> for k, v in sorted(tq.items()):
-    ...     print(k, v)
-    data_quality_flags [0, 0, 0, 0, 0, 0, 0, 0]
-    timing_quality_average 50.0
-    timing_quality_lower_quantile 25.0
-    timing_quality_max 100.0
-    timing_quality_median 50.0
-    timing_quality_min 0.0
-    timing_quality_upper_quantile 75.0
-
-    >>> file_object = io.BytesIO(f.read())
-    >>> f.close()
-    >>> tq = get_timing_and_data_quality(file_object)
-    >>> for k, v in sorted(tq.items()):
-    ...     print(k, v)
-    data_quality_flags [0, 0, 0, 0, 0, 0, 0, 0]
-    timing_quality_average 50.0
-    timing_quality_lower_quantile 25.0
-    timing_quality_max 100.0
-    timing_quality_median 50.0
-    timing_quality_min 0.0
-    timing_quality_upper_quantile 75.0
-    >>> file_object.close()
+    >>> flags = get_flags(filename)
+    >>> for k, v in sorted(flags["timing_quality"].items()):
+    ...     print(k, v)  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    all_values [...]
+    lower_quartile 25.0
+    max 100.0
+    mean 50.0
+    median 50.0
+    min 0.0
+    upper_quartile 75.0
     """
-    # Read the first record to get a starting point and.
-    info = get_record_information(file_or_file_object)
-    # Keep track of the extracted information.
-    quality_count = [0, 0, 0, 0, 0, 0, 0, 0]
-    timing_quality = []
-    offset = 0
 
-    # Loop over each record. A valid record needs to have a record length of at
-    # least 256 bytes.
-    while offset <= (info['filesize'] - 256):
-        this_info = get_record_information(file_or_file_object, offset)
-        # Add the timing quality.
-        if 'timing_quality' in this_info:
-            timing_quality.append(float(this_info['timing_quality']))
-        # Add the value of each bit to the quality_count.
-        for _i in range(8):
-            if (this_info['data_quality_flags'] & (1 << _i)) != 0:
-                quality_count[_i] += 1
-        offset += this_info['record_length']
+    # Splat input to a list
+    if not isinstance(files, list):
+        files = [files]
 
-    # Collect the results in a dictionary.
-    result = {'data_quality_flags': quality_count}
+    # Accepts string or anything else UTCDateTime can parse.
+    starttime = UTCDateTime(starttime) if starttime else None
+    endtime = UTCDateTime(endtime) if endtime else None
 
-    # Parse of the timing quality list.
-    count = len(timing_quality)
-    timing_quality = sorted(timing_quality)
-    # If no timing_quality was collected just return an empty dictionary.
-    if count == 0:
-        return result
-    # Otherwise calculate some statistical values from the timing quality.
-    result['timing_quality_min'] = min(timing_quality)
-    result['timing_quality_max'] = max(timing_quality)
-    result['timing_quality_average'] = sum(timing_quality) / count
-    result['timing_quality_median'] = \
-        score_at_percentile(timing_quality, 50, issorted=False)
-    result['timing_quality_lower_quantile'] = \
-        score_at_percentile(timing_quality, 25, issorted=False)
-    result['timing_quality_upper_quantile'] = \
-        score_at_percentile(timing_quality, 75, issorted=False)
-    return result
+    quality_count = collections.OrderedDict([
+        ("amplifier_saturation_detected", 0),
+        ("digitizer_clipping_detected", 0),
+        ("spikes_detected", 0),
+        ("glitches_detected", 0),
+        ("missing_data_present", 0),
+        ("telemetry_sync_error", 0),
+        ("digital_filter_charging", 0),
+        ("time_tag_uncertain", 0)
+    ])
+
+    activity_count = collections.OrderedDict([
+        ("calibration_signals_present", 0),
+        ("time_correction_applied", 0),
+        ("beginning_event", 0),
+        ("end_event", 0),
+        ("positive_leap", 0),
+        ("negative_leap", 0),
+        ("event_in_progress", 0)
+    ])
+
+    io_count = collections.OrderedDict([
+        ("station_volume_parity_error", 0),
+        ("long_record_read", 0),
+        ("short_record_read", 0),
+        ("start_time_series", 0),
+        ("end_time_series", 0),
+        ("clock_locked", 0)
+    ])
+
+    tq = []
+    record_count = 0
+
+    # Collect all the records for all files before processing
+    for mseed_file in files:
+
+        info = get_record_information(mseed_file)
+
+        offset = 0
+
+        # Loop over each record. A valid record needs to have a record
+        # length of at least 256 bytes.
+        while offset <= (info["filesize"] - 256):
+
+            rec_info = get_record_information(mseed_file, offset)
+            rec_info["endtime"] += (1 / rec_info["samp_rate"])
+            offset += rec_info["record_length"]
+
+            # Skip records that have no overlap with the requested range
+            if starttime is not None and rec_info["endtime"] < starttime:
+                continue
+            if endtime is not None and rec_info["starttime"] > endtime:
+                continue
+
+            record_count += 1
+
+            # Save the flags and timing quality if requested
+            if io_flags:
+                for _i, key in enumerate(io_count.keys()):
+                    if (rec_info["io_and_clock_flags"] & (1 << _i)) != 0:
+                        io_count[key] += 1
+            if activity_flags:
+                for _i, key in enumerate(activity_count.keys()):
+                    if (rec_info["activity_flags"] & (1 << _i)) != 0:
+                        activity_count[key] += 1
+            if data_quality_flags:
+                for _i, key in enumerate(quality_count.keys()):
+                    if (rec_info["data_quality_flags"] & (1 << _i)) != 0:
+                        quality_count[key] += 1
+
+            if timing_quality and "timing_quality" in rec_info:
+                tq.append(float(rec_info["timing_quality"]))
+
+    results = {
+        "record_count": record_count,
+    }
+
+    # Add the flags & counts to the results
+    if io_flags:
+        results["io_and_clock_flags"] = io_count
+    if activity_flags:
+        results["activity_flags"] = activity_count
+    if data_quality_flags:
+        results["data_quality_flags"] = quality_count
+
+    # Add the timing quality param
+    if timing_quality:
+        tq = np.array(tq, dtype=np.float64)
+
+        # Only add the timing quality if it is defined for all records
+        if len(tq):
+            results["timing_quality"] = {
+                "all_values": tq,
+                "min": tq.min(),
+                "max": tq.max(),
+                "mean": tq.mean(),
+                "median": np.median(tq),
+                "lower_quartile": np.percentile(tq, 25),
+                "upper_quartile": np.percentile(tq, 75)
+            }
+        else:
+            results["timing_quality"] = {}
+
+    return results
 
 
 def get_record_information(file_or_file_object, offset=0, endian=None):
@@ -295,6 +628,7 @@ def get_record_information(file_or_file_object, offset=0, endian=None):
     samp_rate 40.0
     starttime 2003-05-29T02:13:22.043400Z
     station HGN
+    time_correction 0
     """
     if isinstance(file_or_file_object, (str, native_str)):
         with open(file_or_file_object, 'rb') as f:
@@ -307,10 +641,10 @@ def get_record_information(file_or_file_object, offset=0, endian=None):
 
 def _get_record_information(file_object, offset=0, endian=None):
     """
-    Searches the first Mini-SEED record stored in file_object at the current
+    Searches the first MiniSEED record stored in file_object at the current
     position and returns some information about it.
 
-    If offset is given, the Mini-SEED record is assumed to start at current
+    If offset is given, the MiniSEED record is assumed to start at current
     position + offset in file_object.
 
     :param endian: If given, the byte order will be enforced. Can be either "<"
@@ -341,9 +675,9 @@ def _get_record_information(file_object, offset=0, endian=None):
         record_start = 0
     file_object.seek(record_start, 0)
 
-    # check if full SEED or Mini-SEED
+    # check if full SEED or MiniSEED
     if file_object.read(8)[6:7] == b'V':
-        # found a full SEED record - seek first Mini-SEED record
+        # found a full SEED record - seek first MiniSEED record
         # search blockette 005, 008 or 010 which contain the record length
         blockette_id = file_object.read(3)
         while blockette_id not in [b'010', b'008', b'005']:
@@ -418,6 +752,7 @@ def _get_record_information(file_object, offset=0, endian=None):
     time_correction_applied = bool(info['activity_flags'] & 2)
     info['io_and_clock_flags'] = values[10]
     info['data_quality_flags'] = values[11]
+    info['time_correction'] = values[12]
     time_correction = values[12]
     blkt_offset = values[13]
 
@@ -537,9 +872,9 @@ def _convert_datetime_to_mstime(dt):
 
 def _convert_mstime_to_datetime(timestring):
     """
-    Takes a Mini-SEED timestamp and returns a obspy.util.UTCDateTime object.
+    Takes a MiniSEED timestamp and returns a obspy.util.UTCDateTime object.
 
-    :param timestamp: Mini-SEED timestring (Epoch time string in ms).
+    :param timestamp: MiniSEED timestring (Epoch time string in ms).
     """
     return UTCDateTime(timestring / HPTMODULUS)
 
