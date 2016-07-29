@@ -655,6 +655,8 @@ def run(argv=None, interactive=True):
                              'corresponding test).')
 
     args = parser.parse_args(argv)
+    print(sys.argv)
+    print(args)
     # set correct verbosity level
     if args.verbose:
         verbosity = 2
