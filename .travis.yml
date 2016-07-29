@@ -147,9 +147,9 @@ script:
   - cd empty
   - export MODULELIST=`python -c "from obspy.core.util import DEFAULT_MODULES as MODULES; print('obspy.' + ',obspy.'.join(MODULES))"`
   - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then
-      export RUNTESTSOPTIONS="--ci-url=\"https://travis-ci.org/${TRAVIS_REPO_SLUG}/jobs/${TRAVIS_JOB_ID}\"";
+      export RUNTESTSOPTIONS="--ci-url https://travis-ci.org/${TRAVIS_REPO_SLUG}/jobs/${TRAVIS_JOB_ID}";
     else
-      export RUNTESTSOPTIONS="--ci-url=\"https://travis-ci.org/${TRAVIS_REPO_SLUG}/jobs/${TRAVIS_JOB_ID}\" --pr-url=\"https://github.com/obspy/obspy/pull/${TRAVIS_PULL_REQUEST}\"";
+      export RUNTESTSOPTIONS="--ci-url https://travis-ci.org/${TRAVIS_REPO_SLUG}/jobs/${TRAVIS_JOB_ID} --pr-url https://github.com/obspy/obspy/pull/${TRAVIS_PULL_REQUEST}";
     fi;
   - echo $MODULELIST
   - echo $RUNTESTSOPTIONS
