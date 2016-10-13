@@ -1422,8 +1422,7 @@ class MSEEDReadingAndWritingTestCase(unittest.TestCase):
             else:  # pragma: no cover
                 raise NotImplemented
 
-        folder = os.path.join(self.path, os.path.pardir, "src", "libmseed",
-                              "test")
+        folder = os.path.join(self.path, "libmseed")
 
         # Get all the tests.
         tests = sorted(glob.glob(os.path.join(folder, "*.test")))
