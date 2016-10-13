@@ -617,9 +617,8 @@ def add_data_files(config):
 
     # Force include the contents of some directories.
     FORCE_INCLUDE_DIRS = [
-        # libmseed tests are symlinked now..
-        # os.path.join(SETUP_DIRECTORY, 'obspy', 'io', 'mseed', 'src',
-        #              'libmseed', 'test'),
+        os.path.join(SETUP_DIRECTORY, 'obspy', 'io', 'mseed', 'src',
+                     'libmseed', 'test'),
         ]
 
     for folder in FORCE_INCLUDE_DIRS:
