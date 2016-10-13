@@ -7,3 +7,5 @@ do
     dh_installdirs -p python-obspy-dbg ${TARGET}
     dh_install -p python-obspy-dbg ${TESTSDIR}/* ${TARGET}
 done
+dh_installdirs -p python-obspy-dbg usr/share/obspy/io/mseed/tests/data/libmseed
+dh_install -p python-obspy-dbg ./debian/tmp/usr/lib/python2.7/dist-packages/obspy/io/mseed/src/libmseed/test/* usr/share/obspy/io/mseed/tests/data/libmseed
