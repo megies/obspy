@@ -100,6 +100,31 @@ def _callChangeGetPAZ(func):
     return new_func
 
 
+def _objectify_result_to_dicts(root):
+    """
+    :type root: :class:`lxml.objectify.ObjectifiedElement`
+    :param root: Root node of result set returned by
+        :func:`lxml.objectify.fromstring`.
+    :rtype: list of dict
+    """
+    result = []
+    for node in root.getchildren():
+        result_ = {}
+        for k, v in node.__dict__.items():
+            # resource_name field should never be automatically cast to
+            # potentially matching python type but always remain plain string
+            # type. Otherwise a resource name of e.g. '24330' will be typecast
+            # to an integer which can results in problems later on.
+            if k == 'resource_name':
+                v = v.text
+            # otherwise just rely on autodetection of appropriate python type
+            else:
+                v = v.pyval
+            result_[k] = v
+        result.append(result_)
+    return result
+
+
 class Client(object):
     """
     SeisHub database request Client class.
@@ -456,8 +481,7 @@ master/seishub/plugins/seismology/waveform.py
                 kwargs[key] = value
         url = '/seismology/waveform/getLatency'
         root = self.client._objectify(url, **kwargs)
-        return [dict(((k, v.pyval) for k, v in node.__dict__.items()))
-                for node in root.getchildren()]
+        return _objectify_result_to_dicts(root)
 
     def getWaveform(self, network, station, location=None, channel=None,
                     starttime=None, endtime=None, apply_filter=None,
@@ -656,8 +680,7 @@ master/seishub/plugins/seismology/waveform.py
                 kwargs[key] = value
         url = '/seismology/station/getList'
         root = self.client._objectify(url, **kwargs)
-        return [dict(((k, v.pyval) for k, v in node.__dict__.items()))
-                for node in root.getchildren()]
+        return _objectify_result_to_dicts(root)
 
     def getCoordinates(self, network, station, datetime, location=''):
         """
@@ -830,10 +853,7 @@ master/seishub/plugins/seismology/event.py
                 kwargs[key] = value
         url = '/seismology/event/getList'
         root = self.client._objectify(url, **kwargs)
-        results = [dict(((k, v.pyval) for k, v in node.__dict__.items()))
-                   for node in root.getchildren()]
-        for res in results:
-            res['resource_name'] = str(res['resource_name'])
+        results = _objectify_result_to_dicts(root)
         if limit == len(results) or \
            limit is None and len(results) == 50 or \
            len(results) == 2500:
