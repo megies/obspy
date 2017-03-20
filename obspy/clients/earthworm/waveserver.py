@@ -75,6 +75,15 @@ class TraceBuf2(object):
         self.parse_data(dat)
         return nbytes
 
+    @staticmethod
+    def from_header(head):
+        """
+        Return new empty trace buffer parsing the header.
+        """
+        trace_buf = TraceBuf2()
+        trace_buf.parse_header(head)
+        return trace_buf
+
     def parse_header(self, head):
         """
         Parse tracebuf header into class variables
@@ -110,23 +119,39 @@ class TraceBuf2(object):
             self.ndata = ndat
         return
 
+    def get_seed_id(self):
+        """
+        Return SEED ID
+        """
+        return '.'.join(self.get_nslc())
+
+    def get_nslc(self):
+        """
+        Return tuple of (network, station, location, channel).
+        """
+        location = self.loc.split(b'\x00')[0].decode()
+        if location == '--':
+            location = ''
+        return (self.net.split(b'\x00')[0].decode(),
+                self.sta.split(b'\x00')[0].decode(), location,
+                self.chan.split(b'\x00')[0].decode())
+
     def get_obspy_trace(self):
         """
         Return class contents as obspy.Trace object
         """
         stat = Stats()
-        stat.network = self.net.split(b'\x00')[0].decode()
-        stat.station = self.sta.split(b'\x00')[0].decode()
-        location = self.loc.split(b'\x00')[0].decode()
-        if location == '--':
-            stat.location = ''
-        else:
-            stat.location = location
-        stat.channel = self.chan.split(b'\x00')[0].decode()
+        net, sta, loc, cha = self.get_nslc()
+        stat.network = net
+        stat.station = sta
+        stat.location = loc
+        stat.channel = cha
         stat.starttime = UTCDateTime(self.start)
         stat.sampling_rate = self.rate
         stat.npts = len(self.data)
-        return Trace(data=self.data, header=stat)
+        tr = Trace(data=self.data, header=stat)
+        print(tr)
+        return tr
 
 
 def send_sock_req(server, port, req_str, timeout=None):
@@ -264,15 +289,14 @@ def read_wave_server_v(server, port, scnl, start, end, timeout=None):
     nbytes = int(tokens[-1])
     dat = get_sock_bytes(sock, nbytes, timeout=timeout)
     sock.close()
-    tbl = []
-    new = TraceBuf2()  # empty..filled below
+    trace_buffers = {}
     bytesread = 1
     p = 0
     while bytesread and p < len(dat):
         if len(dat) > p + 64:
             head = dat[p:p + 64]
             p += 64
-            new.parse_header(head)
+            new = TraceBuf2.from_header(head)
             nbytes = new.ndata * new.inputType.itemsize
 
             if len(dat) < p + nbytes:
@@ -282,9 +306,8 @@ def read_wave_server_v(server, port, scnl, start, end, timeout=None):
             p += nbytes
             new.parse_data(tbd)
 
-            tbl.append(new)
-            new = TraceBuf2()  # empty..filled on next iteration
-    return tbl
+            trace_buffers.setdefault(new.get_seed_id(), []).append(new)
+    return trace_buffers
 
 
 def trace_bufs2obspy_stream(tbuflist):

@@ -16,7 +16,9 @@ from future.builtins import *  # NOQA @UnusedWildImport
 
 from fnmatch import fnmatch
 
-from obspy import Stream, UTCDateTime
+import numpy as np
+
+from obspy import Stream, UTCDateTime, Trace
 from .waveserver import get_menu, read_wave_server_v
 
 
@@ -108,12 +110,36 @@ class Client(object):
             location = '--'
         scnl = (station, channel, network, location)
         # fetch waveform
-        tbl = read_wave_server_v(self.host, self.port, scnl, starttime,
-                                 endtime, timeout=self.timeout)
+        trace_buffers = read_wave_server_v(
+            self.host, self.port, scnl, starttime, endtime,
+            timeout=self.timeout)
         # create new stream
         st = Stream()
-        for tb in tbl:
-            st.append(tb.get_obspy_trace())
+        for seed_id, trace_buffers_ in trace_buffers.items():
+            while trace_buffers_:
+                trace_buffer = trace_buffers_.pop(0)
+                sampling_rate = trace_buffer.rate
+                delta = 1.0 / sampling_rate
+                start = UTCDateTime(trace_buffer.start)
+                # end = UTCDateTime(trace_buffer.end)
+                # XXX end time of trace buffer seems to be wrong?!?
+                nsamps = len(trace_buffer.data)
+                next_start = start + nsamps * delta
+                tr = Trace(
+                    data=np.array([]),
+                    header={'starttime': start,
+                            'sampling_rate': sampling_rate})
+                tr.id = seed_id
+                data = [trace_buffer.data]
+                while (trace_buffers_ and
+                       trace_buffers_[0].start == next_start and
+                       trace_buffers_[0].rate == sampling_rate):
+                    tmp = trace_buffers_.pop(0)
+                    data.append(tmp.data)
+                    nsamps += len(tmp.data)
+                    next_start = start + nsamps * delta
+                tr.data = np.concatenate(data)
+                st.append(tr)
         if cleanup:
             st._cleanup()
         st.trim(starttime, endtime)
