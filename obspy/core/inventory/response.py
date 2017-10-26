@@ -1921,6 +1921,7 @@ class Response(ComparingObject):
                                             input_units, output_units)
         resp = Response(instrument_sensitivity=sensitivity,
                         response_stages=[pzstage])
+        resp.recalculate_overall_sensitivity()
         return resp
 
 
