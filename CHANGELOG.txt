@@ -90,9 +90,9 @@ master:
  - obspy.io.segy:
    * Raise nicer error messages when header packing fails (see #2194, #2196).
  - obspy.io.seiscomp:
-   * Adding support for SC3ML 0.10 (see #2024).
    * Update xsl to allow conversion of amplitude picks not associated with
      origins (see #2273).
+   * Adding support for SC3ML 0.10 (see #2024 and #2004).
  - obspy.io.sh:
    * Add read support for SeismicHandler EVT event files (see #2109)
  - obspy.io.shapefile:
