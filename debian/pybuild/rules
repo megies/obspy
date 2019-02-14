@@ -18,6 +18,9 @@ override_dh_auto_build:
 	    $$python setup.py build; \
 	done;
 
+override_dh_auto_configure:
+	dh_auto_configure -O--buildsystem=pybuild -O--with=python2,python3
+
 override_dh_auto_install:
 	dh_auto_install #-- release
 	dh_numpy
