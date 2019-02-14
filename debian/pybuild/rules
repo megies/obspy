@@ -10,6 +10,7 @@ PYBUILD_INTERPRETERS:=$(shell pyversions -d; py3versions -d)
 %:
 	echo ${PYBUILD_VERSIONS}
 	echo ${PYBUILD_INTERPRETERS}
+	pybuild --disable '3.7'
 	dh $@ --buildsystem=pybuild --with=python2,python3 --with quilt
 	#dh $@ --buildsystem=pybuild --with quilt
 
