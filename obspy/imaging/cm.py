@@ -282,6 +282,7 @@ def _get_all_cmaps():
             inspect.getfile(inspect.currentframe()))),
         "data", "*.np[yz]")
     for filename in glob.glob(cm_file_pattern):
+        print('XXX ' + filename)
         filename = os.path.basename(filename)
         for reverse in (True, False):
             # don't add a reversed version for PQLX colormap
@@ -294,6 +295,9 @@ def _get_all_cmaps():
 
 # inject all colormaps into namespace
 _globals = globals()
+import pprint
+pprint.pprint(_globals)
+pprint.pprint(_globals.keys())
 _globals.update(_get_all_cmaps())
 
 obspy_sequential = _globals["viridis"]
