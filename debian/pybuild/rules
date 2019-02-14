@@ -10,7 +10,11 @@ PYBUILD_INTERPRETERS:=$(shell pyversions -d; py3versions -d)
 %:
 	echo ${PYBUILD_VERSIONS}
 	echo ${PYBUILD_INTERPRETERS}
-	pybuild --disable '3.7'
+	# somehow pybuild wants to build py37 even if it's not installed and we try
+	# to tell it not to build it via PYBUILD_VERSIONS..
+	if [ `lsb_release -cs` = "cosmic" ]; then \
+		pybuild --disable '3.7'; \
+	fi
 	dh $@ --buildsystem=pybuild --with=python2,python3 --with quilt
 	#dh $@ --buildsystem=pybuild --with quilt
 
