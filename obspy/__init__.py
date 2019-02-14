@@ -94,6 +94,17 @@ if requests.__version__ in ('2.12.0', '2.12.1', '2.12.2'):
     warnings.warn(msg)
 
 
+import os
+import inspect
+root_dir = os.path.dirname(os.path.abspath(
+    inspect.getfile(inspect.currentframe())))
+for root, directories, filenames in os.walk(root_dir):
+    for directory in directories:
+        print(os.path.join(root, directory))
+    for filename in filenames:
+        print(os.path.join(root, filename))
+
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod(exclude_empty=True)
