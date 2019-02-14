@@ -64,7 +64,7 @@ def read_release_version():
 
 def write_release_version(version):
     with io.open(VERSION_FILE, "wb") as fh:
-        fh.write("1.1.0")
+        fh.write("1.1.0".encode('ASCII'))
 
 
 def get_git_version(abbrev=10, dirty=True, append_remote_tracking_branch=True):
