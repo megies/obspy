@@ -276,6 +276,16 @@ def _get_all_cmaps():
 
     :rtype: dict
     """
+    import os
+    import inspect
+    root_dir = os.path.dirname(os.path.abspath(
+        inspect.getfile(inspect.currentframe())))
+    for root, directories, filenames in os.walk(root_dir + '/..'):
+        for directory in directories:
+            print(os.path.join(root, directory))
+        for filename in filenames:
+            print(os.path.join(root, filename))
+
     cmaps = {}
     cm_file_pattern = os.path.join(
         os.path.abspath(os.path.dirname(
