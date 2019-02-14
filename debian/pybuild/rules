@@ -8,6 +8,8 @@ PYBUILD_VERSIONS:=$(shell pyversions -d | sed 's/python//'; py3versions -d | sed
 PYBUILD_INTERPRETERS:=$(shell pyversions -d; py3versions -d)
 
 %:
+	echo ${PYBUILD_VERSIONS}
+	echo ${PYBUILD_INTERPRETERS}
 	dh $@ --buildsystem=pybuild --with=python2,python3 --with quilt
 	#dh $@ --buildsystem=pybuild --with quilt
 
