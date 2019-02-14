@@ -281,6 +281,10 @@ def _get_all_cmaps():
         os.path.abspath(os.path.dirname(
             inspect.getfile(inspect.currentframe()))),
         "data", "*.np[yz]")
+    print('XXX ' + os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe()))))
+    print('XXX ' + os.listdir(os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))))
+    print('XXX ' + os.listdir(os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))) + '/data')
+    print('XXX ' + cm_file_pattern)
     for filename in glob.glob(cm_file_pattern):
         print('XXX ' + filename)
         filename = os.path.basename(filename)
