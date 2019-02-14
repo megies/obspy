@@ -5,6 +5,7 @@
 export DH_ALWAYS_EXCLUDE=CVS:.git:.gitignore:__pycache__:src
 export PYBUILD_SYSTEM=distutils
 export PYBUILD_VERSIONS="`pyversions -d | sed 's#python##'` `py3versions -d | sed 's#python##'`"
+export PYBUILD_INTERPRETERS="`pyversions -d` `py3versions -d`"
 
 %:
 	dh $@ --buildsystem=pybuild --with=python2,python3 --with quilt
@@ -21,8 +22,8 @@ override_dh_auto_build:
 #
 #override_dh_auto_configure:
 #	dh_auto_configure -O--buildsystem=pybuild -O--with=python2,python3
-override_dh_auto_configure:
-	echo
+#override_dh_auto_configure:
+#	echo
 
 override_dh_auto_install:
 	dh_auto_install #-- release
