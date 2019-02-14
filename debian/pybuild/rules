@@ -7,7 +7,8 @@ export PYBUILD_SYSTEM=distutils
 export PYBUILD_VERSIONS="`pyversions -d | sed 's#python##'` `py3versions -d | sed 's#python##'`"
 
 %:
-	dh $@ --buildsystem=pybuild --with=python2,python3 --with quilt
+	#dh $@ --buildsystem=pybuild --with=python2,python3 --with quilt
+	dh $@ --buildsystem=pybuild --with quilt
 
 binary:
 	dh binary
@@ -17,9 +18,9 @@ override_dh_auto_build:
 	set -ex; for python in $(shell py3versions -d); do \
 	    $$python setup.py build; \
 	done;
-
-override_dh_auto_configure:
-	dh_auto_configure -O--buildsystem=pybuild -O--with=python2,python3
+#
+#override_dh_auto_configure:
+#	dh_auto_configure -O--buildsystem=pybuild -O--with=python2,python3
 
 override_dh_auto_install:
 	dh_auto_install #-- release
