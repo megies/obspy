@@ -4,8 +4,8 @@
 
 export DH_ALWAYS_EXCLUDE=CVS:.git:.gitignore:__pycache__:src
 export PYBUILD_SYSTEM=distutils
-export PYBUILD_VERSIONS="`pyversions -d | sed 's#python##'` `py3versions -d | sed 's#python##'`"
-export PYBUILD_INTERPRETERS="`pyversions -d` `py3versions -d`"
+PYBUILD_VERSIONS:=$(shell pyversions -d | sed 's/python//'; py3versions -d | sed 's/python//')
+PYBUILD_INTERPRETERS:=$(shell pyversions -d; py3versions -d)
 
 %:
 	dh $@ --buildsystem=pybuild --with=python2,python3 --with quilt
