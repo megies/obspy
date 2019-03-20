@@ -1,5 +1,0 @@
-usr/bin/obspy3-*
-usr/lib/python3*/*-packages/obspy/imaging/data/viri*npz
-usr/lib/python3*/*-packages/obspy/imaging/data/viri*npy
-usr/lib/python3*/*-packages/obspy/*/data
-usr/lib/python3*/*-packages/obspy/*/*/data
