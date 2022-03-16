@@ -1,0 +1,28 @@
+body:
+- type: markdown
+  value: |
+	For generic and usage questions, please use our
+    [user forum](https://discourse.obspy.org/) instead. You will reach more
+    people there and we hope to be able to get some burden off of our small
+    core developer team. You can conveniently sign in with your existing GitHub
+    account (or Google or Twitter account), or create a user bound to an email
+    address.
+- type: checkboxes
+  id: os
+  attributes:
+	label: |
+	  Please [search github issues](https://github.com/obspy/obspy/issues?q=)
+	  whether the bug was already reported / fixed.
+    options:
+      - label: I have searched if the bug was already reported
+        required: true
+- type: checkboxes
+  id: os
+  attributes:
+    label: What operating system did the bug happen on?
+    description: You may select more than one.
+    options:
+      - label: Linux
+      - label: macOS
+      - label: Windows
+      - label: other
