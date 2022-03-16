@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Generic / Usage Question
+    url: https://discourse.obspy.org/
+    about: Please use our [User Forum](https://discourse.obspy.org/) for generic and usage questions

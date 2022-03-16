@@ -1,0 +1,53 @@
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests
+name: Bug report
+description: Report a bug in ObsPy
+labels: ["bug", "unconfirmed"]
+body:
+  - type: markdown
+    attributes:
+      value: For generic and usage questions, please use our [user forum](https://discourse.obspy.org/) instead. You will reach more people there and we hope to be able to get some burden off of our small core developer team. You can conveniently sign in with your existing GitHub account (or Google or Twitter account), or create a user bound to an email address. Please also make sure to search the forum for existing discussions that might match your question.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Bug summary
+      description:  Describe the bug in a few short sentences 
+      placeholder: 
+      value:
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Code for reproduction
+      description: If possible, please provide a [minimum self-contained example](http://sscce.org/) Python snippet
+      placeholder: Paste your code here
+      render: python
+    validations:
+      required: true
+  - type: input
+    id: obspy-version
+    attributes:
+      label: ObsPy Version
+      description: |
+        - In Python prompt: `import obspy; print(obspy.__version__)`
+        - On console: `python -c "import obspy; print(obspy.__version__)"`
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating system
+      description: Windows, OS/X, Arch, Debian, Ubuntu, etc.
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      description: "In console: `python --version`"
+  - type: dropdown
+    id: install
+    attributes:
+      label: Installation
+      description: How did you install obspy?
+      options:
+        - conda
+        - pip
+        - from source / a git checkout
+        - other (please mention in installation method in first text box above)
