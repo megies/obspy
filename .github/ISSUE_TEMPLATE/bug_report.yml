@@ -27,9 +27,29 @@ body:
     id: reproduction
     attributes:
       label: Code to Reproduce
-      description: If possible, please provide a [minimum self-contained example](http://sscce.org/) Python snippet. The shorter and more down to the point, the easier it is for us to identify the problem and the faster it will get fixed =)
-      placeholder: Paste your Python code here
+      description: If possible, please provide a [minimum self-contained example](http://sscce.org/) Python snippet. Please make it so we can copy/paste your code and it will run (not depending on custom local files etc). The shorter and more down to the point, the easier it is for us to identify the problem and the faster it will get fixed =)
+      placeholder: |
+          Paste your Python code here
+
+          from obspy.core.event import Event, Origin
+          print(Event(origins=[Origin()]))
       render: python
+  - type: textarea
+    id: traceback
+    attributes:
+      label: Error Traceback / Program Output
+      description: If applicable, please provide an error traceback or the output of above code
+      placeholder: |
+          Paste your error traceback / program output here
+
+          Traceback (most recent call last):
+            File "<stdin>", line 1, in <module>
+            File "lib/python3.9/site-packages/obspy/core/event.py", line 2675, in __str__
+              self.short_str(),
+            File "lib/python3.9/site-packages/obspy/core/event.py", line 2661, in short_str
+              origin.longitude)
+          TypeError: a float is required
+      render: Python traceback
   - type: input
     id: obspy-version
     attributes:
